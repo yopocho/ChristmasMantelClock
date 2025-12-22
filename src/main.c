@@ -167,7 +167,7 @@ static int setup_lvgl(void) {
 /**
  * @brief Main function loop
  * 
- * @retval 0 if failed
+ * @retval -1 if failed
  */
 int main(void)
 {
@@ -176,14 +176,14 @@ int main(void)
 	ret = setup_dt();	
 	if (ret < 0) {
 		printk("setup_dt failed. Err: %d\n", ret);
-        return 0;
+        return -1;
     }
 
 	/* LVGL setup */
 	ret = setup_lvgl();
 	if (ret < 0) {
 		printk("setup_lvgl failed. Err: %d\n", ret);
-        return 0;
+        return -1;
     }
 
 	/* MAIN LOOP */
@@ -200,7 +200,7 @@ int main(void)
 		k_sleep(K_MSEC(FRAME_TIME_TARGET));
 	}
 
-	return 0;
+	return -1;
 }
 
 /* TODO:
