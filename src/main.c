@@ -5,6 +5,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/rtc.h>
+#include <zephyr/drivers/pwm.h>
 /* LVGL */
 #include <lvgl.h>
 /* C */
@@ -16,6 +17,10 @@
 #define WIDTH 240 // Display width
 #define HEIGHT 240 // Display height
 #define FRAME_TIME_TARGET 50 // ms. 20 FPS for a clock is plenty
+#define PWM_PERIOD PWM_USEC(10) // us
+
+/* PWM */
+uint8_t brightness;
 
 /* LVGL */
 static lv_obj_t * list_clock_theme;
@@ -43,10 +48,18 @@ static struct rtc_time current_time;
 /* Get devices from devicetree */
 static const struct gpio_dt_spec dbg_led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static const struct gpio_dt_spec LCD_PSU_EN = GPIO_DT_SPEC_GET(DT_ALIAS(lcd_psu_en), gpios);
-// static const struct device *LCD_kathode_pwm = DEVICE_DT_GET(DT_ALIAS(kathodepwm)); //TODO: Fix PWM device AAAAA
+static const struct pwm_dt_spec  LCD_kathode_pwm = PWM_DT_SPEC_GET(DT_ALIAS(kathodepwm)); //TODO: Fix PWM device AAAAA
 static const struct device *GC9A01 = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 static const struct device *const rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
 static const struct device *lvgl_keypad = DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
+
+/* Prototypes */
+static int set_date_time(const struct device *rtc, struct rtc_time *settable_time);
+static int get_date_time(const struct device *rtc, struct rtc_time *target_time);
+static int setup_dt(void);
+static int setup_lvgl(void);
+static uint32_t pwm_brightness(uint8_t brightness);
+
 
 /**
  * @brief Set the current time of the RTC device pointed at by *rtc using the tm struct
@@ -59,7 +72,7 @@ static int set_date_time(const struct device *rtc, struct rtc_time *settable_tim
 
 	ret = rtc_set_time(rtc, settable_time);
 	if (ret < 0) {
-		printk("Cannot write date time: %d\n", ret);
+		// printk("Cannot write date time: %d\n", ret);
 		return ret;
 	}
 	return ret;
@@ -76,12 +89,12 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 
 	ret = rtc_get_time(rtc, target_time);
 	if (ret < 0) {
-		printk("Cannot read date time: %d\n", ret);
+		// printk("Cannot read date time: %d\n", ret);
 		return ret;
 	}
 
-	printk("RTC date and time: %04d-%02d-%02d %02d:%02d:%02d\n", target_time->tm_year + 1900,
-	       target_time->tm_mon + 1, target_time->tm_mday, target_time->tm_hour, target_time->tm_min, target_time->tm_sec);
+	// printk("RTC date and time: %04d-%02d-%02d %02d:%02d:%02d\n", target_time->tm_year + 1900,
+	//        target_time->tm_mon + 1, target_time->tm_mday, target_time->tm_hour, target_time->tm_min, target_time->tm_sec);
 
 	return ret;
 }
@@ -93,17 +106,30 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
  */
 static int setup_dt(void) {
 	int ret = 0;
+
+	/* Check if GPIO is ready, but not imperative */
+	if(!gpio_is_ready_dt(&dbg_led)) {
+		printk("GPIO device is not ready\n");
+	}
+	/* Enable GPIOs and set outputs active */
+	ret = gpio_pin_configure_dt(&dbg_led, GPIO_OUTPUT_ACTIVE); // Turn on LED
+	ret = gpio_pin_configure_dt(&LCD_PSU_EN, GPIO_OUTPUT_ACTIVE); // Turn on display
+    if (ret < 0) {
+		printk("GPIO configuring failed\n");
+        return ret;
+    }
+
 	/* Check if display is ready */
 	if (!device_is_ready(GC9A01)) {
 		printk("Display device is not ready\n");
 		return ret;
 	}
 
-	// /* Check if PWM to kathode driver is ready */
-	// if (!device_is_ready(LCD_kathode_pwm)) {
-	// 	printk("Kathode PWM device is not ready\n");
-	// 	return ret;
-	// }
+	/* Check if display kathode PWM is ready */
+	if (!pwm_is_ready_dt(&LCD_kathode_pwm)) {
+		printk("Kathode PWM device is not ready\n");
+		return ret;
+	}
 
     /* Check if the RTC is ready */
 	if (!device_is_ready(rtc)) {
@@ -117,24 +143,12 @@ static int setup_dt(void) {
 		return ret;
 	}
 
-	/* Check if GPIO is ready, but not imperative */
-	if(!gpio_is_ready_dt(&dbg_led)) {
-		printk("GPIO device is not ready\n");
-	}
-
-	ret = gpio_pin_configure_dt(&dbg_led, GPIO_OUTPUT_ACTIVE);
-	ret = gpio_pin_configure_dt(&LCD_PSU_EN, GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
-		printk("GPIO is not ready\n");
-        return ret;
-    }
-
 	/* Set the RTC calender*/
 	set_date_time(rtc, &tm);
 
-	/* Enable the display */
-	gpio_pin_set_dt(&LCD_PSU_EN, 1u);
-
+	/* Set display brightness to 100 */
+	brightness = 100;
+	pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, pwm_brightness(brightness));
 
 	return 0;
 }
@@ -162,6 +176,15 @@ static int setup_lvgl(void) {
 		return ret;
 	}
 	return 0;
+}
+
+/**
+ * @brief Helper function for getting the active pulsewidth for setting display brightness with pwm_set_dt
+ * 
+ * @retval Pulse width in nanoseconds
+ */
+static uint32_t pwm_brightness(uint8_t brightness) { //TODO: Does this need a non-linear implementation?
+	return (PWM_PERIOD * (brightness / 100)); //TODO: This assumes that the value given to pwm_set_dt the active time is (e.g. 80% brightness = PWM_PERIOD * 0.8)
 }
 
 /**

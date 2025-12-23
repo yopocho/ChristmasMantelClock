@@ -1,0 +1,6 @@
+board:
+  name: mantelclock
+  full_name: Mantel Clock STM32F405RGT6
+  vendor: yopocho
+  socs:
+    - name: stm32f405xx
