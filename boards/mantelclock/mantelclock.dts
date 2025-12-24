@@ -98,8 +98,8 @@
 
 		gc9a01: gc9a01@0 {
 			compatible = "galaxycore,gc9x01x";
-			mipi-mode = "MIPI_DBI_MODE_SPI_3WIRE";
-			duplex = <2048>;
+			// mipi-mode = "MIPI_DBI_MODE_SPI_3WIRE";
+			// duplex = <2048>;
 			reg = <0>;
 			mipi-max-frequency = <DT_FREQ_M(20)>;
 			pixel-format = <PANEL_PIXEL_FORMAT_RGB_565>;
@@ -181,7 +181,8 @@
 };
 
 &spi1 {
-	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5 &spi1_mosi_pa7>; // 3-wire SPI // &spi1_miso_pa6
+	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>; // &spi1_nss_pa4 &spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7
 	pinctrl-names = "default";
+	cs-gpios = <&gpioa 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 	status = "okay";
 };
