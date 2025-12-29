@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 /* Defines */
-#define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
+#define LOG_LEVEL LOG_LEVEL_DBG
 #define WIDTH 240 // Display width
 #define HEIGHT 240 // Display height
 #define FRAME_TIME_TARGET 50 // ms. 20 FPS for a clock is plenty
@@ -25,7 +25,7 @@
 uint8_t brightness;
 
 /* Logging */
-LOG_MODULE_REGISTER(logging_mantelclock, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(logging_mantelclock, LOG_LEVEL);
 
 /* LVGL */
 static lv_obj_t * list_clock_theme;
@@ -76,7 +76,7 @@ static int set_date_time(const struct device *rtc, struct rtc_time *settable_tim
 
 	ret = rtc_set_time(rtc, settable_time);
 	if (ret < 0) {
-		printk("Cannot write date time: %d\n", ret);
+		LOG_ERR("Cannot write date time: %d\n", ret);
 		return ret;
 	}
 
@@ -94,11 +94,11 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 
 	ret = rtc_get_time(rtc, target_time);
 	if (ret < 0) {
-		printk("Cannot read date time: %d\n", ret);
+		LOG_ERR("Cannot read date time: %d\n", ret);
 		return ret;
 	}
 
-	printk("RTC date and time: %04d-%02d-%02d %02d:%02d:%02d\n", target_time->tm_year + 1900,
+	LOG_INF("RTC date and time: %04d-%02d-%02d %02d:%02d:%02d\n", target_time->tm_year + 1900,
 	       target_time->tm_mon + 1, target_time->tm_mday, target_time->tm_hour, target_time->tm_min, target_time->tm_sec);
 
 	return ret;
@@ -114,14 +114,14 @@ static int setup_dt(void) {
 
 	/* Check if debug GPIO is ready, but not imperative */
 	if(!gpio_is_ready_dt(&dbg_led)) {
-		printk("GPIO device is not ready\n");
+		LOG_ERR("GPIO device is not ready\n");
 	}
 
 	/* Enable GPIOs and set outputs active */
 	ret = gpio_pin_configure_dt(&dbg_led, GPIO_OUTPUT_ACTIVE); // Turn on LED
 	ret = gpio_pin_configure_dt(&LCD_PSU_EN, GPIO_OUTPUT_ACTIVE); // Turn on display
     if (ret < 0) {
-		printk("GPIO configuring failed\n");
+		LOG_ERR("GPIO configuring failed\n");
         return ret;
     }
 
@@ -131,32 +131,32 @@ static int setup_dt(void) {
 
 	/* Check if display is ready */
 	if (!device_is_ready(GC9A01)) {
-		printk("Display device is not ready\n");
+		LOG_ERR("Display device is not ready\n");
 		return ret;
 	}
 
 	/* Check if display kathode PWM is ready */
 	if (!pwm_is_ready_dt(&LCD_kathode_pwm)) {
-		printk("Kathode PWM device is not ready\n");
+		LOG_ERR("Kathode PWM device is not ready\n");
 		return ret;
 	}
 
     /* Check if the RTC is ready */
 	if (!device_is_ready(rtc)) {
-		printk("RTC device is not ready\n");
+		LOG_ERR("RTC device is not ready\n");
 		return ret;
 	}
 
 	/* Check if the "keypad" (2 buttons) is ready */
 	if (!device_is_ready(lvgl_keypad)) {
-		printk("Keypad device is not ready\n");
+		LOG_ERR("Keypad device is not ready\n");
 		return ret;
 	}
 
 	/* Set the RTC calender*/
 	ret = set_date_time(rtc, &tm);
 	if (ret < 0) {
-		printk("RTC set_date_time failed\n");
+		LOG_ERR("RTC set_date_time failed\n");
         return ret;
     }
 
@@ -164,7 +164,7 @@ static int setup_dt(void) {
 	// brightness = 100;
 	ret = pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD);
 	if (ret < 0) {
-		printk("PWM setting failed\n");
+		LOG_ERR("PWM setting failed\n");
 		return ret;
 	}
 
@@ -212,13 +212,13 @@ int main(void)
 	/* devicetree setup*/
 	ret = setup_dt();	
 	if (ret < 0) {
-		printk("setup_dt failed. Err: %d\n", ret);
+		LOG_ERR("setup_dt failed. Err: %d\n", ret);
     //     return -1;
     }
 
 	ret = setup_lvgl();
 	if (ret < 0) {
-		printk("setup_lvgl failed. Err: %d\n", ret);
+		LOG_ERR("setup_lvgl failed. Err: %d\n", ret);
     //     return -1;
     }
 
