@@ -148,7 +148,7 @@ static int setup_dt(void) {
 	}
 
 	/* Check if the "keypad" (2 buttons) is ready */
-	if (!device_is_ready(lvgl_keypad)) {
+	if (!device_is_ready(lvgl_keypad)) { //TODO: Dit moet wss pas NA het initten van zephyr
 		LOG_ERR("Keypad device is not ready\n");
 		return ret;
 	}
@@ -184,9 +184,10 @@ static int setup_lvgl(void) {
 
 	/* LVGL HELLO WORLD SNIPPET */
 	// lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), 0);
-	hello_world_label = lv_label_create(lv_screen_active());
-	lv_label_set_text(hello_world_label, "Hello world!");
-	lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
+
+	// hello_world_label = lv_label_create(lv_screen_active());
+	// lv_label_set_text(hello_world_label, "Hello world!");
+	// lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
 
 	// current_time_label = lv_label_create(lv_screen_active());
 	// lv_obj_align(current_time_label, LV_ALIGN_BOTTOM_MID, 0, 0);
@@ -215,12 +216,14 @@ int main(void)
 		LOG_ERR("setup_dt failed. Err: %d\n", ret);
     //     return -1;
     }
+	LOG_INF("Devicetree setup complete");
 
 	ret = setup_lvgl();
 	if (ret < 0) {
 		LOG_ERR("setup_lvgl failed. Err: %d\n", ret);
     //     return -1;
     }
+	LOG_INF("LVGL setup complete");
 
 	/* MAIN LOOP */
 	while (1) {
@@ -233,10 +236,11 @@ int main(void)
 		// lv_label_set_text(current_time_label, current_time_str);
 		// sprintf(current_time_str, "%d", ret);
 		// lv_label_set_text(current_time_label, current_time_str);
-		lv_label_set_text(hello_world_label, "Hello world!");
+		// lv_label_set_text(hello_world_label, "Hello world!");
 		// lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
 		lv_task_handler();
 		gpio_pin_toggle_dt(&dbg_led);
+		LOG_DBG("Main loop");
 		// k_sleep(K_MSEC(FRAME_TIME_TARGET));
 		k_sleep(K_MSEC(500));
 	}
