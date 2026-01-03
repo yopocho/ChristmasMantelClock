@@ -47,8 +47,8 @@ static struct rtc_time tm = {
 	.tm_year = 2026 - 1900,
 	.tm_mon = 01 - 1,
 	.tm_mday = 03,
-	.tm_hour = 17,
-	.tm_min = 13,
+	.tm_hour = 18,
+	.tm_min = 0,
 	.tm_sec = 0,
 };
 
@@ -107,6 +107,16 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 	return ret;
 }
 
+static void set_time_label(void) {
+	get_date_time(rtc, &current_time);
+	LOG_INF("Current time: %d:%d:%d", current_time.tm_hour, current_time.tm_min, current_time.tm_sec);
+	sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
+	sprintf(temp_time_str_min, "%02d", current_time.tm_min);
+	sprintf(temp_time_str_sec, "%02d", current_time.tm_sec);
+	sprintf(current_time_str, "%s%s%s%s%s", temp_time_str_hr, seperator, temp_time_str_min, seperator, temp_time_str_sec);
+	lv_label_set_text(current_time_label, current_time_str);
+}
+
 /**
  * @brief Setup function for the devices from the devicetree
  * 
@@ -121,7 +131,7 @@ static int setup_dt(void) {
 	}
 
 	/* Enable GPIOs and set outputs active */
-	ret = gpio_pin_configure_dt(&dbg_led, GPIO_OUTPUT_ACTIVE); // Turn on LED
+	ret = gpio_pin_configure_dt(&dbg_led, GPIO_OUTPUT_INACTIVE); // Turn on LED
     if (ret < 0) {
 		LOG_ERR("GPIO configuring failed\n");
         return ret;
@@ -179,11 +189,13 @@ static int setup_lvgl(void) {
 	int ret;
 
 	/* Set initial display BG color */
-	lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), 0);
+	lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), 0);
 
 	current_time_label = lv_label_create(lv_screen_active());
 	lv_obj_align(current_time_label, LV_ALIGN_CENTER, 0, 0);
-	// lv_style_set_text_font(current_time_label, &lv_font_montserrat_28);
+	lv_obj_set_style_text_color(current_time_label, lv_color_white(), 0); //lv_palette_main(LV_PALETTE_CYAN)
+	
+	set_time_label();
 
 	lv_task_handler();
 	ret = display_blanking_off(GC9A01);
@@ -220,17 +232,9 @@ int main(void)
 
 	/* MAIN LOOP */
 	while (1) {
-		get_date_time(rtc, &current_time);
-		LOG_INF("Current time: %d:%d:%d", current_time.tm_hour, current_time.tm_min, current_time.tm_sec);
-		sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
-		sprintf(temp_time_str_min, "%02d", current_time.tm_min);
-		sprintf(temp_time_str_sec, "%02d", current_time.tm_sec);
-		sprintf(current_time_str, "%s%s%s%s%s", temp_time_str_hr, seperator, temp_time_str_min, seperator, temp_time_str_sec);
-		lv_label_set_text(current_time_label, current_time_str);
-		lv_task_handler();
-		gpio_pin_toggle_dt(&dbg_led);
-		LOG_DBG("Main loop");
-		k_sleep(K_MSEC(FRAME_TIME_TARGET));
+		set_time_label(); // Update the time label
+		lv_task_handler(); // Handle LVGL-related tasks
+		k_sleep(K_MSEC(FRAME_TIME_TARGET)); // Time for other threads
 	}
 
 	return -1;
