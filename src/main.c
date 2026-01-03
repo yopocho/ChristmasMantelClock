@@ -243,7 +243,7 @@ int main(void)
 		gpio_pin_toggle_dt(&dbg_led);
 		LOG_DBG("Main loop");
 		// k_sleep(K_MSEC(FRAME_TIME_TARGET));
-		k_sleep(K_MSEC(500));
+		k_sleep(K_MSEC(100));
 	}
 
 	return -1;

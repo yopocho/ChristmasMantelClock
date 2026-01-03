@@ -80,6 +80,8 @@
 		regulator-name = "display-pwr-regulator";
 		enable-gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
 		regulator-boot-on;
+		startup-delay-us = <100000>;
+		off-on-delay-us = <100000>; 
 	};
 
 	aliases {
