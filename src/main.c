@@ -52,7 +52,7 @@ static struct rtc_time current_time;
 
 /* Get devices from devicetree */
 static const struct gpio_dt_spec dbg_led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-static const struct gpio_dt_spec LCD_PSU_EN = GPIO_DT_SPEC_GET(DT_ALIAS(lcd_psu_en), gpios);
+// static const struct gpio_dt_spec LCD_PSU_EN = GPIO_DT_SPEC_GET(DT_ALIAS(lcd_psu_en), gpios);
 static const struct pwm_dt_spec  LCD_kathode_pwm = PWM_DT_SPEC_GET(DT_ALIAS(kathodepwm)); //TODO: Fix PWM device AAAAA
 static const struct device *GC9A01 = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 static const struct device *const rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
@@ -119,15 +119,15 @@ static int setup_dt(void) {
 
 	/* Enable GPIOs and set outputs active */
 	ret = gpio_pin_configure_dt(&dbg_led, GPIO_OUTPUT_ACTIVE); // Turn on LED
-	ret = gpio_pin_configure_dt(&LCD_PSU_EN, GPIO_OUTPUT_ACTIVE); // Turn on display
+	// ret = gpio_pin_configure_dt(&LCD_PSU_EN, GPIO_OUTPUT_ACTIVE); // Turn on display
     if (ret < 0) {
 		LOG_ERR("GPIO configuring failed\n");
         return ret;
     }
 
 	/* Manually init display after applying power and waiting for it to settle */
-	k_sleep(K_MSEC(2000));
-	device_init(GC9A01);
+	// k_sleep(K_MSEC(2000));
+	// device_init(GC9A01);
 
 	/* Check if display is ready */
 	if (!device_is_ready(GC9A01)) {
@@ -180,7 +180,7 @@ static int setup_lvgl(void) {
 	int ret;
 
 	/* Manually init LVGL */
-	lv_init();
+	// lv_init();
 
 	/* Set initial display BG color */
 	// lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), 0);

@@ -34,10 +34,10 @@
 			label = "Debug LED Red";
 		};
 
-		lcd_psu_en: lcd_psu_en { // Using gpio-leds as output for enabling the PSU for the LCD
-			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
-			label = "Enable LCD PSU";
-		};
+		// lcd_psu_en: lcd_psu_en { // Using gpio-leds as output for enabling the PSU for the LCD
+		// 	gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+		// 	label = "Enable LCD PSU";
+		// };
 	};
 
 	keys: keys {
@@ -74,9 +74,17 @@
 		};
 	};
 
+	display_pwr_regulator: display_pwr_regulator {
+		compatible = "regulator-fixed";
+		status = "okay";
+		regulator-name = "display-pwr-regulator";
+		enable-gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+		regulator-boot-on;
+	};
+
 	aliases {
 		led0 = &red_led;
-		lcd-psu-en = &lcd_psu_en;
+		// lcd-psu-en = &lcd_psu_en;
 		kathodepwm = &kathode_pwm;
 		gc9a01 = &gc9a01;
 		sw0 = &user_button_1;
