@@ -65,7 +65,7 @@ CONFIG_LV_USE_ARC=y
 CONFIG_LV_USE_MONKEY=y
 
 # LVGL Fonts
-CONFIG_LV_FONT_MONTSERRAT_14=y
+CONFIG_LV_FONT_DEFAULT_MONTSERRAT_40=y
 
 # Performance Tuning in LVGL
 # To optimize LVGL's performance, several kconfig options can be configured:
