@@ -182,9 +182,10 @@ static int setup_lvgl(void) {
 	/* Manually init LVGL */
 	lv_init();
 
-	/* LVGL HELLO WORLD SNIPPET */
+	/* Set initial display BG color */
 	// lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), 0);
-
+	
+	/* LVGL HELLO WORLD SNIPPET */
 	// hello_world_label = lv_label_create(lv_screen_active());
 	// lv_label_set_text(hello_world_label, "Hello world!");
 	// lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
