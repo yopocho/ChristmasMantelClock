@@ -11,11 +11,10 @@
 #include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
 #include <zephyr/dt-bindings/display/panel.h>
 #include <zephyr/dt-bindings/lvgl/lvgl.h>
-// #include <zephyr/dt-bindings/display/gc9a01.h>
 
 / {
 	model = "yopocho Mantel Clock";
-	compatible = "yopocho,mantelclock"; // Does this need a specific compatible or just whatever I want to name it?
+	compatible = "yopocho,mantelclock";
 
 	chosen {
 		zephyr,console = &usart2;
@@ -23,7 +22,7 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,dtcm = &ccm0;
-		zephyr,display = &gc9a01; // Is this correct and do I need any more choices added here?
+		zephyr,display = &gc9a01;
 	};
 
 	leds {
@@ -33,11 +32,6 @@
 			gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
 			label = "Debug LED Red";
 		};
-
-		// lcd_psu_en: lcd_psu_en { // Using gpio-leds as output for enabling the PSU for the LCD
-		// 	gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
-		// 	label = "Enable LCD PSU";
-		// };
 	};
 
 	keys: keys {
@@ -86,7 +80,6 @@
 
 	aliases {
 		led0 = &red_led;
-		// lcd-psu-en = &lcd_psu_en;
 		kathodepwm = &kathode_pwm;
 		gc9a01 = &gc9a01;
 		sw0 = &user_button_1;
@@ -114,7 +107,6 @@
 			width = <240>;
 			height = <240>;
 			display-inversion;
-			// zephyr,deferred-init;
 		};
 	};
 };

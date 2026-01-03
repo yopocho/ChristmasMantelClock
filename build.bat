@@ -1,0 +1,1 @@
+west build -b mantelclock -- -DBOARD_ROOT=C:\Users\niels\zephyrproject\zephyr\samples\ChristmasMantelClock

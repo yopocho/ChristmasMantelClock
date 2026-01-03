@@ -52,7 +52,6 @@ static struct rtc_time current_time;
 
 /* Get devices from devicetree */
 static const struct gpio_dt_spec dbg_led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-// static const struct gpio_dt_spec LCD_PSU_EN = GPIO_DT_SPEC_GET(DT_ALIAS(lcd_psu_en), gpios);
 static const struct pwm_dt_spec  LCD_kathode_pwm = PWM_DT_SPEC_GET(DT_ALIAS(kathodepwm)); //TODO: Fix PWM device AAAAA
 static const struct device *GC9A01 = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 static const struct device *const rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
@@ -125,14 +124,11 @@ static int setup_dt(void) {
         return ret;
     }
 
-	/* Manually init display after applying power and waiting for it to settle */
-	// k_sleep(K_MSEC(2000));
-	// device_init(GC9A01);
-
 	/* Check if display is ready */
-	if (!device_is_ready(GC9A01)) {
+	while (!device_is_ready(GC9A01)) {
 		LOG_ERR("Display device is not ready\n");
-		return ret;
+		k_sleep(K_MSEC(500));
+		// return ret;
 	}
 
 	/* Check if display kathode PWM is ready */
@@ -179,16 +175,13 @@ static int setup_dt(void) {
 static int setup_lvgl(void) {
 	int ret;
 
-	/* Manually init LVGL */
-	// lv_init();
-
 	/* Set initial display BG color */
-	// lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), 0);
+	lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), 0);
 	
 	/* LVGL HELLO WORLD SNIPPET */
-	// hello_world_label = lv_label_create(lv_screen_active());
-	// lv_label_set_text(hello_world_label, "Hello world!");
-	// lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
+	hello_world_label = lv_label_create(lv_screen_active());
+	lv_label_set_text(hello_world_label, "I LOVE YOU EVA!");
+	lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
 
 	// current_time_label = lv_label_create(lv_screen_active());
 	// lv_obj_align(current_time_label, LV_ALIGN_BOTTOM_MID, 0, 0);
@@ -242,8 +235,7 @@ int main(void)
 		lv_task_handler();
 		gpio_pin_toggle_dt(&dbg_led);
 		LOG_DBG("Main loop");
-		// k_sleep(K_MSEC(FRAME_TIME_TARGET));
-		k_sleep(K_MSEC(100));
+		k_sleep(K_MSEC(FRAME_TIME_TARGET));
 	}
 
 	return -1;
