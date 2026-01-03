@@ -114,7 +114,7 @@
 			width = <240>;
 			height = <240>;
 			display-inversion;
-			zephyr,deferred-init;
+			// zephyr,deferred-init;
 		};
 	};
 };
