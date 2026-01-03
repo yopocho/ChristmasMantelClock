@@ -28,19 +28,25 @@ uint8_t brightness;
 LOG_MODULE_REGISTER(logging_mantelclock, LOG_LEVEL);
 
 /* LVGL */
-static lv_obj_t * list_clock_theme;
-static lv_style_t style_list_clock_theme;
-static lv_style_t style_background;
-static lv_style_t style_numbers;
-static lv_style_t style_text_border;
-static lv_style_t style_display_border;
+/* Style definitions */
+static lv_style_t style_spinbox_time;
+static lv_style_t style_object_selector;
+
+/* Widget groups */
+static lv_group_t * g;
+
+/* Objects and such */
 char current_time_str[9];
 char temp_time_str_hr[3];
 char temp_time_str_min[3];
 char temp_time_str_sec[3];
 lv_obj_t *hello_world_label;
 lv_obj_t *current_time_label;
-char seperator[2] = {':', '\0'};
+lv_indev_t * indev;
+
+lv_obj_t * spinbox_hr;
+lv_obj_t * spinbox_min;
+lv_obj_t * spinbox_sec;
 
 /* RTC Calender */
 static struct rtc_time tm = {
@@ -64,8 +70,10 @@ static const struct device *lvgl_keypad = DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS
 /* Prototypes */
 static int set_date_time(const struct device *rtc, struct rtc_time *settable_time);
 static int get_date_time(const struct device *rtc, struct rtc_time *target_time);
+static void set_time_label(void);
 static int setup_dt(void);
 static int setup_lvgl(void);
+void process_keypad(lv_indev_t * indev, lv_indev_data_t * data);
 
 
 /**
@@ -90,7 +98,7 @@ static int set_date_time(const struct device *rtc, struct rtc_time *settable_tim
  * @brief Read the current time from the RTC device pointed at by *rtc
  * 
  * @retval Zephyr retval
-//  */
+*/
 static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 {
 	int ret = 0;
@@ -108,14 +116,23 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 }
 
 static void set_time_label(void) {
-	get_date_time(rtc, &current_time);
-	LOG_INF("Current time: %d:%d:%d", current_time.tm_hour, current_time.tm_min, current_time.tm_sec);
-	sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
-	sprintf(temp_time_str_min, "%02d", current_time.tm_min);
-	sprintf(temp_time_str_sec, "%02d", current_time.tm_sec);
-	sprintf(current_time_str, "%s%s%s%s%s", temp_time_str_hr, seperator, temp_time_str_min, seperator, temp_time_str_sec);
-	lv_label_set_text(current_time_label, current_time_str);
+	// get_date_time(rtc, &current_time);
+	// LOG_INF("Current time: %d:%d:%d", current_time.tm_hour, current_time.tm_min, current_time.tm_sec);
+	// sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
+	// sprintf(temp_time_str_min, "%02d", current_time.tm_min);
+	// sprintf(temp_time_str_sec, "%02d", current_time.tm_sec);
+	// sprintf(current_time_str, "%s%s%s%s%s", temp_time_str_hr, ":", temp_time_str_min, ":", temp_time_str_sec);
+	// lv_label_set_text(current_time_label, current_time_str);
 }
+
+// void process_keypad(lv_indev_t * indev, lv_indev_data_t * data) {
+//   if(key_pressed()) {
+//      data->key = my_last_key();            /* Get the last pressed or released key */
+//      data->state = LV_INDEV_STATE_PRESSED;
+//   } else {
+//      data->state = LV_INDEV_STATE_RELEASED;
+//   }
+// }
 
 /**
  * @brief Setup function for the devices from the devicetree
@@ -188,16 +205,85 @@ static int setup_dt(void) {
 static int setup_lvgl(void) {
 	int ret;
 
+	/* Create the main group to which indevs and widgets can be added and processed */
+	g = lv_group_create();
+	
 	/* Set initial display BG color */
 	lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), 0);
 
-	current_time_label = lv_label_create(lv_screen_active());
-	lv_obj_align(current_time_label, LV_ALIGN_CENTER, 0, 0);
-	lv_obj_set_style_text_color(current_time_label, lv_color_white(), 0); //lv_palette_main(LV_PALETTE_CYAN)
-	
-	set_time_label();
+	/* Register the 2 buttons as keypad indev */
+	indev = lv_indev_get_next(NULL);
+	lv_indev_set_group(indev, g);
+
+	/* Init spinbox for each section of time (hh:mm:ss) */
+	spinbox_hr = lv_spinbox_create(lv_screen_active());
+	spinbox_min = lv_spinbox_create(lv_screen_active());
+	spinbox_sec = lv_spinbox_create(lv_screen_active());
+	lv_group_add_obj(g, spinbox_hr);
+	lv_group_add_obj(g, spinbox_min);
+	lv_group_add_obj(g, spinbox_sec);
+    lv_spinbox_set_range(spinbox_hr, 0, 23);
+	lv_spinbox_set_range(spinbox_min, 0, 59);
+	lv_spinbox_set_range(spinbox_sec, 0, 59);
+    lv_spinbox_set_digit_count(spinbox_hr, 2);
+	lv_spinbox_set_digit_count(spinbox_min, 2);
+	lv_spinbox_set_digit_count(spinbox_sec, 2);
+	lv_spinbox_set_step(spinbox_hr, 1);
+	lv_spinbox_set_step(spinbox_min, 1);
+	lv_spinbox_set_step(spinbox_sec, 1);
+    // lv_obj_set_width(spinbox_hr, 75);
+	// lv_obj_set_width(spinbox_min, 75);
+	// lv_obj_set_width(spinbox_sec, 75);
+	lv_spinbox_set_rollover(spinbox_hr, true);
+	lv_spinbox_set_rollover(spinbox_min, true);
+	lv_spinbox_set_rollover(spinbox_sec, true);
+
+	/* Define the spinbox style */
+	lv_style_init(&style_spinbox_time);
+	lv_style_set_width(&style_spinbox_time, 75); // Maybe lv_pct(25) or smthn, with reduced margin perhaps ????
+    lv_style_set_height(&style_spinbox_time, lv_pct(20));
+	lv_style_set_pad_all(&style_spinbox_time, 0);
+	lv_style_set_bg_opa(&style_spinbox_time, LV_OPA_TRANSP);
+	lv_style_set_text_align(&style_spinbox_time, LV_TEXT_ALIGN_CENTER);
+	lv_style_set_text_color(&style_spinbox_time, lv_color_white());
+	lv_style_set_border_opa(&style_spinbox_time, LV_OPA_TRANSP);
+	lv_style_set_outline_color(&style_spinbox_time, lv_color_white());
+	lv_obj_set_align(spinbox_hr, LV_ALIGN_LEFT_MID);
+	lv_obj_set_align(spinbox_min, LV_ALIGN_CENTER);
+	lv_obj_set_align(spinbox_sec, LV_ALIGN_RIGHT_MID);
+	// lv_style_set_margin_all(&style_spinbox_time, 5);
+
+	/* Assign the time style to the spinboxes */
+	lv_obj_add_style(spinbox_hr, &style_spinbox_time, 0);
+	lv_obj_add_style(spinbox_min, &style_spinbox_time, 0);
+	lv_obj_add_style(spinbox_sec, &style_spinbox_time, 0);
+
+	/* Remove the cursor from the spinboxes */
+	lv_obj_add_style(spinbox_hr, &style_spinbox_time, LV_PART_CURSOR);
+	lv_obj_add_style(spinbox_min, &style_spinbox_time, LV_PART_CURSOR);
+	lv_obj_add_style(spinbox_sec, &style_spinbox_time, LV_PART_CURSOR);
+
+	/* Define the object selector style */
+	lv_style_init(&style_object_selector);
+	lv_style_set_radius(&style_object_selector, 0); //Square?
+	lv_style_set_outline_color(&style_object_selector, lv_color_white());
+	lv_style_set_outline_opa(&style_object_selector, LV_OPA_100);
+
+	/* Assign the object selector style to relevant selector(s) */
+	lv_obj_add_style(spinbox_hr, &style_object_selector, LV_STATE_FOCUS_KEY);
+	lv_obj_add_style(spinbox_min, &style_object_selector, LV_STATE_FOCUS_KEY);
+	lv_obj_add_style(spinbox_sec, &style_object_selector, LV_STATE_FOCUS_KEY);
+
+	/* Assign time spinboxes initial value */
+	lv_spinbox_set_value(spinbox_hr, tm.tm_hour);
+	lv_spinbox_set_value(spinbox_hr, tm.tm_min);
+	lv_spinbox_set_value(spinbox_hr, tm.tm_sec);
+
+	// set_time_label(); Deprecated rn
 
 	lv_task_handler();
+
+	/* Disable blanking the display to prevent having to redraw */
 	ret = display_blanking_off(GC9A01);
 	k_sleep(K_MSEC(120));
 	if (ret < 0 && ret != -ENOSYS) {
@@ -232,7 +318,7 @@ int main(void)
 
 	/* MAIN LOOP */
 	while (1) {
-		set_time_label(); // Update the time label
+		// set_time_label(); // Update the time label
 		lv_task_handler(); // Handle LVGL-related tasks
 		k_sleep(K_MSEC(FRAME_TIME_TARGET)); // Time for other threads
 	}

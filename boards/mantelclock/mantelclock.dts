@@ -41,13 +41,13 @@
 
 		user_button_1: button_1 {
 			label = "User button 1";
-			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpiob 12 GPIO_ACTIVE_LOW>;
 			zephyr,code = <INPUT_KEY_0>;
 		};
 
         user_button_2: button_2 {
 			label = "User button 2";
-			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpiob 15 GPIO_ACTIVE_LOW>;
 			zephyr,code = <INPUT_KEY_1>;
 		};
 	};
