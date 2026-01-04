@@ -46,7 +46,6 @@ CONFIG_GC9X01X=y
 CONFIG_DISPLAY=y
 CONFIG_INPUT=y
 CONFIG_LV_Z_KEYPAD_INPUT=y
-CONFIG_DISPLAY_LOG_LEVEL_DBG=y
 
 # LVGL Requirements (memory in 32-bit words)
 CONFIG_MAIN_STACK_SIZE=32768
@@ -65,7 +64,7 @@ CONFIG_LV_USE_ARC=y
 CONFIG_LV_USE_MONKEY=y
 
 # LVGL Fonts
-CONFIG_LV_FONT_DEFAULT_MONTSERRAT_40=y
+CONFIG_LV_FONT_DEFAULT_MONTSERRAT_48=y
 
 # Performance Tuning in LVGL
 # To optimize LVGL's performance, several kconfig options can be configured:
