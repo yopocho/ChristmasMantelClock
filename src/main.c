@@ -88,19 +88,30 @@ static int setup_lvgl(void);
 // void process_keypad(lv_indev_t * indev, lv_indev_data_t * data);
 
 /* FIXME TODO: -> de callback werkt niet meer :'| */
-static void user_interaction_cb(lv_event_t * e) {
-	lv_indev_t * temp_indev = (lv_indev_t *)lv_event_get_target(e); /*Same as lv_indev_active()*/
+static void user_interaction_cb(lv_event_t * e) {	
+	lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * obj = lv_event_get_target(e);
 	
 	gpio_pin_toggle_dt(&dbg_led);
+
+    if (code == LV_EVENT_VALUE_CHANGED) {
+        // Handle programmatic or user-caused value changes
+        LOG_DBG("Spinbox value changed: %d", lv_spinbox_get_value(obj));
+        gpio_pin_toggle_dt(&dbg_led);
+    } else if (code == LV_EVENT_FOCUSED || code == LV_EVENT_CLICKED) {
+        // Handle focus or click (potential user interaction)
+        LOG_DBG("Spinbox focused or clicked");
+    }
+    // Add other event handling as needed
 	// LOG_DBG("Callback");
 	// LOG_DBG("%c", (char) lv_indev_get_key(temp_indev));
-	LOG_DBG("%d", lv_indev_get_state(temp_indev));
+	// LOG_DBG("%d", lv_indev_get_state(temp_indev));
 	
-	if(lv_indev_get_state(temp_indev) == LV_INDEV_STATE_PRESSED) {
-		LOG_DBG("User input detected");
-		gpio_pin_toggle_dt(&dbg_led);
-        LOG_DBG("%c", (char) lv_indev_get_key(temp_indev));
-    }
+	// if(lv_indev_get_state(temp_indev) == LV_INDEV_STATE_PRESSED) {
+	// 	LOG_DBG("User input detected");
+	// 	gpio_pin_toggle_dt(&dbg_led);
+    //     LOG_DBG("%c", (char) lv_indev_get_key(temp_indev));
+    // }
 
 	// if(lv_indev_get_state(indev) == LV_INDEV_STATE_PRESSED) {
 	// 	// uint32_t pressed_key = 0;
@@ -289,8 +300,7 @@ static int setup_lvgl(void) {
 	group_digital_clock_set_time = lv_group_create();
 
 	/* Register the 2 buttons as keypad indev */
-	// indev = lv_indev_get_next(NULL);
-	indev = lvgl_input_get_indev(indev_dt);
+	indev = lv_indev_get_next(NULL);
 	lv_indev_set_group(indev, group_digital_clock);
 	// lv_indev_add_event_cb(indev, user_interaction_cb, LV_EVENT_ALL, NULL);
 	// lv_indev_set_read_cb(indev, user_interaction_cb);
@@ -387,6 +397,10 @@ static int setup_lvgl(void) {
 	/* Add LV_STATE_DISABLED to the spinboxes to prevent them from being edited by the user */
 	// lv_obj_add_state(spinbox_hr, LV_STATE_DISABLED);
 	// lv_obj_add_state(spinbox_min, LV_STATE_DISABLED);
+
+	/* Add the LV_EVENT_FOCUSED event to the spinboxes */
+	lv_obj_add_event(spinbox_hr, user_interaction_cb, LV_EVENT_FOCUSED, NULL);
+	lv_obj_add_event(spinbox_min, user_interaction_cb, LV_EVENT_FOCUSED, NULL);
 
 	/* Attach cb when spinboxes are (de)focused */
 	lv_obj_add_event_cb(spinbox_hr, user_interaction_cb, LV_EVENT_ALL | LV_EVENT_VALUE_CHANGED | LV_EVENT_READY | LV_EVENT_CANCEL | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED | LV_EVENT_CLICKED, NULL);
