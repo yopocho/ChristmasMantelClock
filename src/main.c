@@ -41,7 +41,11 @@ lv_style_t style_spinbox_time;
 lv_style_t style_label_time;
 lv_style_t style_object_selector;
 lv_style_t style_parent_digital_clock;
+lv_style_t style_parent_digital_clock_set_time;
 lv_style_t style_colon;
+lv_style_t style_digital_clock_set_time_buttons;
+lv_style_t style_cont_digital_clock_set_time_buttons;
+lv_style_t style_button_text;
 
 /* Widget groups */
 lv_group_t * group_digital_clock;
@@ -61,6 +65,14 @@ lv_obj_t * label_hr;
 lv_obj_t * label_min;
 
 lv_obj_t * label_colon;
+lv_obj_t * label_colon_digital_clock_set_time;
+
+lv_obj_t * button_menu;
+lv_obj_t * button_cancel;
+lv_obj_t * button_ok;
+lv_obj_t * label_button_cancel;
+lv_obj_t * label_button_menu;
+lv_obj_t * label_button_ok;
 
 /* RTC Calender */
 static struct rtc_time tm = {
@@ -277,12 +289,53 @@ static int setup_lvgl(void) {
 	label_min = lv_label_create(scr_digital_clock);
 
 	spinbox_hr = lv_spinbox_create(scr_digital_clock_set_time);
+	label_colon_digital_clock_set_time = lv_label_create(scr_digital_clock_set_time);
 	spinbox_min = lv_spinbox_create(scr_digital_clock_set_time);
-	
+
+	/* Buttons for scr_digital_clock_set_time */
+	button_cancel = lv_button_create(scr_digital_clock_set_time);
+	button_menu = lv_button_create(scr_digital_clock_set_time);
+	button_ok = lv_button_create(scr_digital_clock_set_time);
+	label_button_cancel = lv_label_create(button_cancel);
+	label_button_menu = lv_label_create(button_menu);
+	label_button_ok = lv_label_create(button_ok);	
+
 	/* Add widgets to groups */
 	// TODO: These have to get added to a group when necessary and in the right order with the colon!
 	lv_group_add_obj(group_digital_clock, label_hr);
 	lv_group_add_obj(group_digital_clock, label_min);
+
+	/* Define the style of the buttons */
+	lv_style_init(&style_digital_clock_set_time_buttons);
+	lv_style_set_width(&style_digital_clock_set_time_buttons, LV_SIZE_CONTENT);
+	lv_style_set_height(&style_digital_clock_set_time_buttons, lv_pct(10));
+	lv_style_set_pad_all(&style_digital_clock_set_time_buttons, 0);
+	lv_style_set_bg_opa(&style_digital_clock_set_time_buttons, LV_OPA_TRANSP);
+	lv_style_set_text_align(&style_digital_clock_set_time_buttons, LV_TEXT_ALIGN_CENTER);
+	lv_style_set_text_color(&style_digital_clock_set_time_buttons, lv_color_white());
+	lv_style_set_border_opa(&style_digital_clock_set_time_buttons, LV_OPA_TRANSP);
+	lv_style_set_outline_color(&style_digital_clock_set_time_buttons, lv_color_white());
+	lv_style_set_shadow_opa(&style_digital_clock_set_time_buttons, LV_OPA_TRANSP);
+	// lv_style_set_outline_opa(&style_digital_clock_set_time_buttons, LV_OPA_TRANSP);
+	lv_style_set_margin_all(&style_digital_clock_set_time_buttons, 0);
+
+	/* Define the style of the container for the buttons */
+	lv_style_init(&style_parent_digital_clock_set_time);
+	lv_style_set_bg_color(&style_parent_digital_clock_set_time, lv_color_black());
+	lv_style_set_layout(&style_parent_digital_clock_set_time, LV_LAYOUT_FLEX);
+	lv_style_set_flex_flow(&style_parent_digital_clock_set_time, LV_FLEX_FLOW_ROW_WRAP);
+
+	/* Define the style of the text of the buttons */
+	lv_style_init(&style_button_text);
+	lv_style_set_text_color(&style_button_text, lv_color_white());
+	lv_style_set_text_align(&style_button_text, LV_TEXT_ALIGN_CENTER);
+	lv_style_set_align(&style_button_text, LV_ALIGN_CENTER);
+	// lv_style_set_border_opa(&style_button_text, LV_OPA_TRANSP);
+	// lv_style_set_outline_color(&style_button_text, lv_color_white());
+	// lv_style_set_margin_all(&style_button_text, 0);
+	// lv_style_set_pad_all(&style_button_text, 0);
+	// lv_style_set_bg_opa(&style_button_text, LV_OPA_TRANSP);
+	lv_style_set_text_font(&style_button_text, LV_FONT_MONTSERRAT_10);
 
 	/* Define the object selector style */
 	lv_style_init(&style_object_selector);
@@ -300,6 +353,9 @@ static int setup_lvgl(void) {
 	lv_obj_set_flex_align(scr_digital_clock, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 	lv_obj_set_flex_align(scr_digital_clock_set_time, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
+	/* Align the buttons for scr_digital_clock_set_time to new flex row in order cancel-menu-ok*/
+	lv_obj_add_flag(button_cancel, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+
 	/* Init style for digital time labels */
 	lv_style_init(&style_label_time);
 	lv_style_set_width(&style_spinbox_time, lv_pct(30));
@@ -312,7 +368,7 @@ static int setup_lvgl(void) {
 	lv_style_set_margin_all(&style_label_time, 0);
 	// lv_style_set_outline_opa(&style_label_time, LV_OPA_TRANSP);
 
-	/* Init spinbox for each section of time (hh:mm:ss) */
+	/* Init spinbox for each section of time (hh:mm) */
     lv_spinbox_set_range(spinbox_hr, 0, 23);
 	lv_spinbox_set_range(spinbox_min, 0, 59);
     lv_spinbox_set_digit_count(spinbox_hr, 2);
@@ -350,6 +406,16 @@ static int setup_lvgl(void) {
 	lv_obj_add_style(spinbox_hr, &style_spinbox_time, 0);
 	lv_obj_add_style(spinbox_min, &style_spinbox_time, 0);
 
+	/* Assign the style_button_digital_clock_set_time to the buttons */
+	lv_obj_add_style(button_cancel, &style_digital_clock_set_time_buttons, 0);
+	lv_obj_add_style(button_menu, &style_digital_clock_set_time_buttons, 0);
+	lv_obj_add_style(button_ok, &style_digital_clock_set_time_buttons, 0);
+
+	/* Assign the style_colon to the button labels for text consistency, BUT CHANGED SOME VALUES */
+	lv_obj_add_style(label_button_cancel, &style_button_text, 0);
+	lv_obj_add_style(label_button_menu, &style_button_text, 0);
+	lv_obj_add_style(label_button_ok, &style_button_text, 0);
+
 	/* Assign the time style to the time labels */
 	lv_obj_add_style(label_hr, &style_label_time, 0);
 	lv_obj_add_style(label_min, &style_label_time, 0);
@@ -357,17 +423,20 @@ static int setup_lvgl(void) {
 	/* Assign the time style the colon seperator */
 	lv_obj_add_style(label_colon, &style_colon, 0);
 
+	/* Assign the set_time style to the colon seperator */
+	lv_obj_add_style(label_colon_digital_clock_set_time, &style_colon, 0);
+
 	/* Assign the style_parent_digital_clock to the parent container */
 	lv_obj_add_style(scr_digital_clock, &style_parent_digital_clock, 0);
 
-	/* TODO: TEMP, scr_digital_clock_set_time probably needs its own style */
-	lv_obj_add_style(scr_digital_clock_set_time, &style_parent_digital_clock, 0);
+	/* Assign the style_parent_digital_clock_set_time to the parent container */
+	lv_obj_add_style(scr_digital_clock_set_time, &style_parent_digital_clock_set_time, 0);
 
 	/* Assign the object selector style to relevant selector(s) */
 	lv_obj_add_style(spinbox_hr, &style_object_selector, LV_STATE_FOCUS_KEY);
 	lv_obj_add_style(spinbox_min, &style_object_selector, LV_STATE_FOCUS_KEY);
 
-	// /* Remove the cursor from the spinboxes */
+	/* Remove the cursor from the spinboxes */
 	lv_obj_add_style(spinbox_hr, &style_spinbox_time, LV_PART_CURSOR);
 	lv_obj_add_style(spinbox_min, &style_spinbox_time, LV_PART_CURSOR);
 
@@ -396,13 +465,21 @@ static int setup_lvgl(void) {
 	/* Assign the seperator label initial value */
 	lv_label_set_text(label_colon, ":");
 
-	/* Add the LV_EVENT_FOCUSED event to the spinboxes */
-	lv_obj_add_event(spinbox_hr, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED | LV_EVENT_CLICKED, NULL);
-	lv_obj_add_event(spinbox_min, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED | LV_EVENT_CLICKED, NULL);
+	/* Assign the colon seperator digital_clock_set_time initial value */
+	lv_label_set_text(label_colon_digital_clock_set_time, ":");
 
-	/* Attach cb when spinboxes are (de)focused */
-	lv_obj_add_event_cb(spinbox_hr, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED | LV_EVENT_CLICKED, NULL);
-	lv_obj_add_event_cb(spinbox_min, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED | LV_EVENT_CLICKED, NULL);
+	/* Set the value of the button labels on scr_digital_clock_set_time */
+	lv_label_set_text(label_button_cancel, "CNCL");
+	lv_label_set_text(label_button_menu, "MENU");
+	lv_label_set_text(label_button_ok, "OK");
+
+	// /* Add the LV_EVENT_FOCUSED event to the spinboxes */
+	// lv_obj_add_event(spinbox_hr, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED, NULL);
+	// lv_obj_add_event(spinbox_min, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+	// /* Attach cb when spinboxes are (de)focused */
+	// lv_obj_add_event_cb(spinbox_hr, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED, NULL);
+	// lv_obj_add_event_cb(spinbox_min, spinbox_interaction_cb, LV_EVENT_VALUE_CHANGED | LV_EVENT_FOCUSED | LV_EVENT_DEFOCUSED, NULL);
 
 	/* Add relevant states to labels that they don't have by default */
 	lv_obj_add_state(label_hr, LV_STATE_FOCUS_KEY | LV_STATE_FOCUSED);
@@ -420,9 +497,12 @@ static int setup_lvgl(void) {
 	lv_obj_add_event(label_hr, label_interaction_cb, LV_EVENT_FOCUSED, NULL);
 	lv_obj_add_event(label_min, label_interaction_cb, LV_EVENT_FOCUSED, NULL);
 
-	/* Add LV_STATE_DISABLED to the spinboxes to prevent them from being edited by the user while not displayed*/
+	/* Add LV_STATE_DISABLED to the spinboxes and buttons to prevent them from being edited by the user while not displayed*/
 	lv_obj_add_state(spinbox_hr, LV_STATE_DISABLED);
 	lv_obj_add_state(spinbox_min, LV_STATE_DISABLED);
+	lv_obj_add_state(button_cancel, LV_STATE_DISABLED);
+	lv_obj_add_state(button_menu, LV_STATE_DISABLED);
+	lv_obj_add_state(button_ok, LV_STATE_DISABLED);
 
 	/* Load scr_digital_clock as default on start-up (for now, TODO, add user configureables and save them to NVM) */
 	lv_screen_load(scr_digital_clock);
@@ -492,11 +572,19 @@ int main(void)
 					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK_SET_TIME");
 					lv_screen_load(scr_digital_clock_set_time);
 					lv_indev_set_group(indev, group_digital_clock_set_time);
-					lv_obj_set_parent(label_colon, scr_digital_clock_set_time);
 					lv_obj_remove_state(spinbox_hr, LV_STATE_DISABLED);
 					lv_obj_remove_state(spinbox_min, LV_STATE_DISABLED);
+					lv_obj_remove_state(button_cancel, LV_STATE_DISABLED);
+					lv_obj_remove_state(button_menu, LV_STATE_DISABLED);
+					lv_obj_remove_state(button_ok, LV_STATE_DISABLED);
+					lv_obj_set_parent(label_button_cancel, button_cancel);
+					lv_obj_set_parent(label_button_menu, button_menu);
+					lv_obj_set_parent(label_button_ok, button_ok);
 					lv_group_add_obj(group_digital_clock_set_time, spinbox_hr);
 					lv_group_add_obj(group_digital_clock_set_time, spinbox_min);
+					lv_group_add_obj(group_digital_clock_set_time, button_cancel);
+					lv_group_add_obj(group_digital_clock_set_time, button_menu);
+					lv_group_add_obj(group_digital_clock_set_time, button_ok);
 					// lv_obj_add_state(spinbox_hr, LV_STATE_FOCUSED);
 					current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
 				}
