@@ -34,6 +34,15 @@ typedef struct _objects_t {
     lv_obj_t *button_digital_clock_set_time_cancel;
     lv_obj_t *button_digital_clock_set_time_menu;
     lv_obj_t *button_digital_clock_set_time_ok;
+    lv_obj_t *cont_scr_menu;
+    lv_obj_t *cont_brightness;
+    lv_obj_t *label_menu_brightness;
+    lv_obj_t *cont_brightness_1;
+    lv_obj_t *label_menu_clock_type;
+    lv_obj_t *cont_brightness_2;
+    lv_obj_t *label_menu_background_colour;
+    lv_obj_t *cont_brightness_3;
+    lv_obj_t *label_menu_text_colour;
 } objects_t;
 
 extern objects_t objects;

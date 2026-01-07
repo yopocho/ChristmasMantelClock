@@ -104,6 +104,12 @@ void action_change_screen(lv_event_t *e) {
 	}
 }
 
+void action_digital_clock_set_time_ok(lv_event_t *e) {
+    // TODO: Implement action digital_clock_set_time_ok here
+	// FIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXME: Switching screens crashes the MPU, presumably because of running out of RAM at runtime. Start looking into optimizing RAM usage through LVGL minimal configs and such :/
+	LOG_DBG("Digital clock set time OK button pressed");
+}
+
 /**
  * @brief Set the current time of the RTC device pointed at by *rtc using the tm struct
  * 
@@ -152,6 +158,9 @@ static void display_time(void) {
 		sprintf(temp_time_str_min, "%02d", current_time.tm_min);
 		set_var_time_hr_global(temp_time_str_hr); // Update EEZ UI global hour variable
 		set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
+	}
+	else if(current_screen == SCREEN_ANALOG_CLOCK) {
+		// TODO: Add analog clock time update (implementation for time showing through a gauge widget probably, which needs rotational angles for the hands)
 	}
 
 }
@@ -293,6 +302,7 @@ int main(void)
 				case SCREEN_ANALOG_CLOCK:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
 					current_screen = SCREEN_ANALOG_CLOCK;
+					// TODO: Add group for analog clock
 					loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK);
 					break;
 				case SCREEN_DIGITAL_CLOCK_SET_TIME:
@@ -304,11 +314,13 @@ int main(void)
 				case SCREEN_ANALOG_CLOCK_SET_TIME:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK_SET_TIME");
 					current_screen = SCREEN_ANALOG_CLOCK_SET_TIME;
+					// TODO: Add group for analog clock set time
 					loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK_SET_TIME);
 					break;
 				case SCREEN_MENU:
 					LOG_DBG("Switching to SCREEN_MENU");
 					current_screen = SCREEN_MENU;
+					// TODO: Add group for menu
 					loadScreen(SCREEN_ID_SCR_MENU);
 					break;
 				default:
