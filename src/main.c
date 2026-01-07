@@ -10,6 +10,8 @@
 #include <zephyr/drivers/pwm.h>
 /* LVGL */
 #include <lvgl.h>
+/* UI */
+#include "ui/ui.h"
 /* C */
 #include <string.h>
 #include <stdio.h>
@@ -21,11 +23,18 @@
 #define FRAME_TIME_TARGET 50 // ms. 20 FPS for a clock is plenty
 #define PWM_PERIOD PWM_USEC(10) // us
 
+/* LVGL */
+lv_indev_t * indev;
+
 /* PWM */
 uint8_t brightness;
 
 /* Logging */
 LOG_MODULE_REGISTER(logging_mantelclock, LOG_LEVEL_DBG);
+
+/* Required global variables for EEZ UI */
+char time_hr_global[100] = { 0 };
+char time_min_global[100] = { 0 };
 
 /* RTC Calender */
 static struct rtc_time tm = {
@@ -68,6 +77,29 @@ static void display_time(void);
 static int setup_dt(void);
 static int setup_lvgl(void);
 
+/* Required implementations for EEZ UI */
+const char *get_var_time_hr_global() {
+    return time_hr_global;
+}
+
+void set_var_time_hr_global(const char *value) {
+    strncpy(time_hr_global, value, sizeof(time_hr_global) / sizeof(char));
+    time_hr_global[sizeof(time_hr_global) / sizeof(char) - 1] = 0;
+}
+
+const char *get_var_time_min_global() {
+    return time_min_global;
+}
+
+void set_var_time_min_global(const char *value) {
+    strncpy(time_min_global, value, sizeof(time_min_global) / sizeof(char));
+    time_min_global[sizeof(time_min_global) / sizeof(char) - 1] = 0;
+}
+
+void action_change_screen(lv_event_t *e) {
+    // TODO: Implement action change_screen here
+}
+
 /**
  * @brief Set the current time of the RTC device pointed at by *rtc using the tm struct
  * 
@@ -108,23 +140,13 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 }
 
 static void display_time(void) {
-	// if(current_screen == SCREEN_DIGITAL_CLOCK) {
-	// 	char temp_time_str_hr[3];
-	// 	char temp_time_str_min[3];
-	// 	get_date_time(rtc, &current_time);
-	// 	LOG_INF("Current time: %d:%d:%d", current_time.tm_hour, current_time.tm_min, current_time.tm_sec);
-	// 	sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
-	// 	sprintf(temp_time_str_min, "%02d", current_time.tm_min);
-	// 	lv_label_set_text(label_hr, temp_time_str_hr);
-	// 	lv_label_set_text(label_min, temp_time_str_min);
-	// }
-	// else if(current_screen == SCREEN_ANALOG_CLOCK) {
-	// 	//TODO: Time setting for analog clock, something with angles for lines for the hands of the clock
-	// }
-	// else {
-	// 	// Do nothing in scr_menu, scr_digital_clock_set_time and scr_analog_clock_set_time
-	// 	return;
-	// }
+	char temp_time_str_hr[3];
+	char temp_time_str_min[3];
+	get_date_time(rtc, &current_time);
+	sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
+	sprintf(temp_time_str_min, "%02d", current_time.tm_min);
+	set_var_time_hr_global(temp_time_str_hr); // Update EEZ UI global hour variable
+	set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
 }
 
 /**
@@ -199,10 +221,14 @@ static int setup_lvgl(void) {
 	int ret;
 
 	/* Register the 2 buttons as keypad indev */
-	// indev = lv_indev_get_next(NULL);
-	// lv_indev_set_group(indev, group_digital_clock);
+	indev = lv_indev_get_next(NULL);
 
-	lv_task_handler();
+	/* Init the UI with the indev */
+	ui_create_groups();
+	lv_indev_set_group(indev, groups.group_digital_clock);
+
+	/* Init UI */
+	ui_init();
 
 	/* Disable blanking the display to prevent having to redraw */
 	ret = display_blanking_off(GC9A01);
@@ -289,6 +315,7 @@ int main(void)
 		// }
 
 		lv_task_handler(); // Handle LVGL-related tasks
+		ui_tick();
 		LOG_DBG("Current screen: %d", current_screen);
 		k_sleep(K_MSEC(FRAME_TIME_TARGET)); // Time for other threads
 	}
