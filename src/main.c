@@ -97,9 +97,10 @@ void set_var_time_min_global(const char *value) {
 }
 
 void action_change_screen(lv_event_t *e) {
-	if(current_screen != next_screen) {
+	screens temp_screen = (screens) lv_event_get_user_data(e);
+	if(current_screen != temp_screen) {
 		previous_screen = current_screen;
-    	next_screen = (screens) lv_event_get_user_data(e);
+    	next_screen = temp_screen;
 	}
 }
 
