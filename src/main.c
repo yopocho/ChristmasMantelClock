@@ -97,7 +97,10 @@ void set_var_time_min_global(const char *value) {
 }
 
 void action_change_screen(lv_event_t *e) {
-    // TODO: Implement action change_screen here
+	if(current_screen != next_screen) {
+		previous_screen = current_screen;
+    	next_screen = (screens) lv_event_get_user_data(e);
+	}
 }
 
 /**
@@ -142,11 +145,14 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 static void display_time(void) {
 	char temp_time_str_hr[3];
 	char temp_time_str_min[3];
-	get_date_time(rtc, &current_time);
-	sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
-	sprintf(temp_time_str_min, "%02d", current_time.tm_min);
-	set_var_time_hr_global(temp_time_str_hr); // Update EEZ UI global hour variable
-	set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
+	if(current_screen == SCREEN_DIGITAL_CLOCK) {
+		get_date_time(rtc, &current_time);
+		sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
+		sprintf(temp_time_str_min, "%02d", current_time.tm_min);
+		set_var_time_hr_global(temp_time_str_hr); // Update EEZ UI global hour variable
+		set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
+	}
+
 }
 
 /**
@@ -222,6 +228,10 @@ static int setup_lvgl(void) {
 
 	/* Register the 2 buttons as keypad indev */
 	indev = lv_indev_get_next(NULL);
+	if(indev == NULL) {
+		LOG_ERR("LVGL indev_get_next failed\n");
+		return -1;
+	}
 
 	/* Init the UI with the indev */
 	ui_create_groups();
@@ -259,6 +269,7 @@ int main(void)
     }
 	LOG_INF("Devicetree setup complete");
 
+	/* LVGL and EEZ UI setup */
 	ret = setup_lvgl();
 	if (ret < 0) {
 		LOG_ERR("setup_lvgl failed. Err: %d\n", ret);
@@ -269,54 +280,50 @@ int main(void)
 	/* MAIN LOOP */
 	LOG_INF("Running");
 	while (1) {
-		/* Update the time on widgets which are relevant for the current screen */
-		display_time();
-
-		// /* Switch screens based on user input*/
-		// switch(next_screen) {
-		// 	case SCREEN_DIGITAL_CLOCK:
-		// 		if(current_screen != SCREEN_DIGITAL_CLOCK) {
-		// 			LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
-		// 			lv_screen_load(scr_digital_clock);
-		// 			current_screen = SCREEN_DIGITAL_CLOCK;
-		// 		}
-		// 		break;
-		// 	case SCREEN_ANALOG_CLOCK:
-		// 		if(current_screen != SCREEN_ANALOG_CLOCK) {
-		// 			LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
-		// 			lv_screen_load(scr_analog_clock);
-		// 			current_screen = SCREEN_ANALOG_CLOCK;
-		// 		}
-		// 		break;
-		// 	case SCREEN_DIGITAL_CLOCK_SET_TIME:
-		// 		if(current_screen != SCREEN_DIGITAL_CLOCK_SET_TIME) {
-		// 			LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK_SET_TIME");
-		// 			lv_screen_load(scr_digital_clock_set_time);
-		// 			current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
-		// 		}
-		// 		break;
-		// 	case SCREEN_ANALOG_CLOCK_SET_TIME:
-		// 		if(current_screen != SCREEN_ANALOG_CLOCK_SET_TIME) {
-		// 			LOG_DBG("Switching to SCREEN_ANALOG_CLOCK_SET_TIME");
-		// 			lv_screen_load(scr_analog_clock_set_time);
-		// 			current_screen = SCREEN_ANALOG_CLOCK_SET_TIME;
-		// 		}
-		// 		break;
-		// 	case SCREEN_MENU:
-		// 		if(current_screen != SCREEN_MENU) {
-		// 			LOG_DBG("Switching to SCREEN_MENU");
-		// 			lv_screen_load(scr_menu);
-		// 			current_screen = SCREEN_MENU;
-		// 		}
-		// 		break;
-		// 	default:
-		// 		// Do nothing
-		// 		break;
-		// }
+		/* Switch screens manually, updated through EEZ UI action callback */
+		if(next_screen != current_screen) {
+			switch(next_screen) {
+				case SCREEN_DIGITAL_CLOCK:
+					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
+					current_screen = SCREEN_DIGITAL_CLOCK;
+					lv_indev_set_group(indev, groups.group_digital_clock);
+					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+					break;
+				case SCREEN_ANALOG_CLOCK:
+					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
+					current_screen = SCREEN_ANALOG_CLOCK;
+					loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK);
+					break;
+				case SCREEN_DIGITAL_CLOCK_SET_TIME:
+					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK_SET_TIME");
+					current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
+					lv_indev_set_group(indev, groups.group_digital_clock_set_time);
+					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK_SET_TIME);
+					break;
+				case SCREEN_ANALOG_CLOCK_SET_TIME:
+					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK_SET_TIME");
+					current_screen = SCREEN_ANALOG_CLOCK_SET_TIME;
+					loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK_SET_TIME);
+					break;
+				case SCREEN_MENU:
+					LOG_DBG("Switching to SCREEN_MENU");
+					current_screen = SCREEN_MENU;
+					loadScreen(SCREEN_ID_SCR_MENU);
+					break;
+				default:
+					// Do nothing
+					break;
+			}
+		}
 
 		lv_task_handler(); // Handle LVGL-related tasks
-		ui_tick();
-		LOG_DBG("Current screen: %d", current_screen);
+		ui_tick(); // Handle EEZ UI-related tasks
+
+		/* Update the time on widgets which are relevant for the current screen */
+		if((current_screen == SCREEN_DIGITAL_CLOCK) || (current_screen == SCREEN_ANALOG_CLOCK)) {
+			display_time();
+		}
+		// LOG_DBG("Current screen: %d", current_screen);
 		k_sleep(K_MSEC(FRAME_TIME_TARGET)); // Time for other threads
 	}
 
