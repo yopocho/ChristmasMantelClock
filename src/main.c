@@ -40,9 +40,9 @@ char time_min_global[100] = { 0 };
 static struct rtc_time tm = {
 	.tm_year = 2026 - 1900,
 	.tm_mon = 01 - 1,
-	.tm_mday = 06,
-	.tm_hour = 18,
-	.tm_min = 03,
+	.tm_mday = 9,
+	.tm_hour = 11,
+	.tm_min = 44,
 	.tm_sec = 24,
 };
 
@@ -52,13 +52,14 @@ typedef enum  {
 	SCREEN_ANALOG_CLOCK,
 	SCREEN_DIGITAL_CLOCK_SET_TIME,
 	SCREEN_ANALOG_CLOCK_SET_TIME,
-	SCREEN_MENU
+	SCREEN_MENU,
+	SCREEN_NONE
 } screens;
 
 /* Set initial screen as SCREEN_DIGITAL_CLOCK (TODO: For now, this has to be retrieved from user settings eventually) */
-screens current_screen = SCREEN_DIGITAL_CLOCK;
-screens next_screen = SCREEN_DIGITAL_CLOCK;
-screens previous_screen = SCREEN_DIGITAL_CLOCK;
+screens current_screen = SCREEN_NONE;
+screens next_screen = SCREEN_NONE;
+screens previous_screen = SCREEN_NONE;
 
 
 struct rtc_time current_time;
@@ -260,6 +261,10 @@ static int setup_lvgl(void) {
 
 	display_time();
 
+	/* Set initial screen */
+	// TODO: digital or analog clock setting from user preferences
+	next_screen = SCREEN_DIGITAL_CLOCK;
+
 	return 0;
 }
 
@@ -287,6 +292,9 @@ int main(void)
     }
 	LOG_INF("LVGL setup complete");
 
+	LOG_DBG("Group digital_clock: %d", groups.group_digital_clock);
+	LOG_DBG("Group digital_clock_set_time: %d", groups.group_digital_clock_set_time);
+
 	/* MAIN LOOP */
 	LOG_INF("Running");
 	while (1) {
@@ -297,6 +305,10 @@ int main(void)
 					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
 					current_screen = SCREEN_DIGITAL_CLOCK;
 					lv_indev_set_group(indev, groups.group_digital_clock);
+					lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
+					LOG_DBG("Current group:, %d", lv_indev_get_group(indev));
 					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 					break;
 				case SCREEN_ANALOG_CLOCK:
@@ -307,15 +319,20 @@ int main(void)
 					break;
 				case SCREEN_DIGITAL_CLOCK_SET_TIME:
 					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK_SET_TIME");
-					current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
 					lv_indev_set_group(indev, groups.group_digital_clock_set_time);
-					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK_SET_TIME);
+					lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_remove_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_remove_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_state(objects.spinbox_hr_digital_clock_set_time, LV_STATE_FOCUSED);
+					LOG_DBG("Current group:, %d", lv_indev_get_group(indev));
+					current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
+					// loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK_SET_TIME);
 					break;
 				case SCREEN_ANALOG_CLOCK_SET_TIME:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK_SET_TIME");
 					current_screen = SCREEN_ANALOG_CLOCK_SET_TIME;
 					// TODO: Add group for analog clock set time
-					loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK_SET_TIME);
+					// loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK_SET_TIME);
 					break;
 				case SCREEN_MENU:
 					LOG_DBG("Switching to SCREEN_MENU");
@@ -336,7 +353,7 @@ int main(void)
 		if((current_screen == SCREEN_DIGITAL_CLOCK) || (current_screen == SCREEN_ANALOG_CLOCK)) {
 			display_time();
 		}
-		// LOG_DBG("Current screen: %d", current_screen);
+		LOG_DBG("Main loop");
 		k_sleep(K_MSEC(FRAME_TIME_TARGET)); // Time for other threads
 	}
 

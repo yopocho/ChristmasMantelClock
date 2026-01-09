@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+extern const lv_font_t ui_font_courier_new_20;
+extern const lv_font_t ui_font_courier_new_72;
 
 
 #ifdef __cplusplus
