@@ -8,7 +8,8 @@ extern "C" {
 #endif
 
 extern void action_change_screen(lv_event_t * e);
-extern void action_digital_clock_set_time_ok(lv_event_t * e);
+extern void action_digital_clock_set_time_save(lv_event_t * e);
+extern void action_menu_save(lv_event_t * e);
 
 
 #ifdef __cplusplus

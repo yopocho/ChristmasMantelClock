@@ -53,7 +53,8 @@ typedef enum  {
 	SCREEN_DIGITAL_CLOCK_SET_TIME,
 	SCREEN_ANALOG_CLOCK_SET_TIME,
 	SCREEN_MENU,
-	SCREEN_NONE
+	SCREEN_NONE,
+	SCREEN_PREVIOUS
 } screens;
 
 /* Set initial screen as SCREEN_DIGITAL_CLOCK (TODO: For now, this has to be retrieved from user settings eventually) */
@@ -105,10 +106,19 @@ void action_change_screen(lv_event_t *e) {
 	}
 }
 
-void action_digital_clock_set_time_ok(lv_event_t *e) {
-    // TODO: Implement action digital_clock_set_time_ok here
-	// FIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXME: Switching screens crashes the MPU, presumably because of running out of RAM at runtime. Start looking into optimizing RAM usage through LVGL minimal configs and such :/
+void action_digital_clock_set_time_save(lv_event_t *e) {
+    // TODO: This implementation changes when adhering to the user set Clock Type (digital/analog)
+	if(previous_screen == SCREEN_DIGITAL_CLOCK) {
+		next_screen = SCREEN_DIGITAL_CLOCK;
+	}
+	else if(previous_screen == SCREEN_ANALOG_CLOCK) {
+		next_screen = SCREEN_ANALOG_CLOCK;
+	}
 	LOG_DBG("Digital clock set time OK button pressed");
+}
+
+void action_menu_save(lv_event_t * e) {
+	// TODO: Implement saving brightness and such to NVM
 }
 
 /**
@@ -161,7 +171,7 @@ static void display_time(void) {
 		set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
 	}
 	else if(current_screen == SCREEN_ANALOG_CLOCK) {
-		// TODO: Add analog clock time update (implementation for time showing through a gauge widget probably, which needs rotational angles for the hands)
+		// TODO: Add analog clock time update (implementation for time showing through a scale widget probably, which needs rotational angles for the hands)
 	}
 
 }
@@ -303,13 +313,14 @@ int main(void)
 			switch(next_screen) {
 				case SCREEN_DIGITAL_CLOCK:
 					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
-					current_screen = SCREEN_DIGITAL_CLOCK;
+					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 					lv_indev_set_group(indev, groups.group_digital_clock);
 					lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_add_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
-					LOG_DBG("Current group:, %d", lv_indev_get_group(indev));
-					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+					lv_group_focus_obj(objects.label_time_hr_digital_clock);
+					previous_screen = current_screen;
+					current_screen = SCREEN_DIGITAL_CLOCK;
 					break;
 				case SCREEN_ANALOG_CLOCK:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
@@ -323,22 +334,22 @@ int main(void)
 					lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_remove_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_remove_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
-					lv_obj_add_state(objects.spinbox_hr_digital_clock_set_time, LV_STATE_FOCUSED);
-					LOG_DBG("Current group:, %d", lv_indev_get_group(indev));
+					lv_group_focus_obj(objects.spinbox_hr_digital_clock_set_time);
+					previous_screen = current_screen;
 					current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
-					// loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK_SET_TIME);
 					break;
 				case SCREEN_ANALOG_CLOCK_SET_TIME:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK_SET_TIME");
+					previous_screen = current_screen;
 					current_screen = SCREEN_ANALOG_CLOCK_SET_TIME;
-					// TODO: Add group for analog clock set time
-					// loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK_SET_TIME);
 					break;
 				case SCREEN_MENU:
 					LOG_DBG("Switching to SCREEN_MENU");
-					current_screen = SCREEN_MENU;
-					// TODO: Add group for menu
 					loadScreen(SCREEN_ID_SCR_MENU);
+					lv_indev_set_group(indev, groups.group_menu);
+					lv_group_focus_obj(objects.spinbox_menu_brightness);
+					previous_screen = current_screen;
+					current_screen = SCREEN_MENU;
 					break;
 				default:
 					// Do nothing
@@ -353,16 +364,19 @@ int main(void)
 		if((current_screen == SCREEN_DIGITAL_CLOCK) || (current_screen == SCREEN_ANALOG_CLOCK)) {
 			display_time();
 		}
-		LOG_DBG("Main loop");
-		k_sleep(K_MSEC(FRAME_TIME_TARGET)); // Time for other threads
+
+		/* Time for other Zephyr-related threads */
+		k_sleep(K_MSEC(FRAME_TIME_TARGET));
 	}
 
 	return -1;
 }
 
-/* TODO:
- * Add callbacks of some kind for brightness adjustment
- * Add callbacks for theme switching
- * Write and read preferred brightness and theme to NVM
+/* TODO: List of improvements
+ * Save user settings to NVM (brightness, clock type, colours)
+ * Read settings from NVM whenever switching between screens, states, on boot, just really whenever :')
+ *  > Probably better to read settings on boot once and store in a (admittedly large) global struct or something
+ * Optimize LVGL config (CONFIG_LV_CONF_MINIMAL=y)
+ * Optimize memory allocation through config
  * 
  */
