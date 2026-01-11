@@ -56,6 +56,13 @@ lv_style_t *get_style_style_scale_analog_clock_MAIN_DEFAULT();
 void add_style_style_scale_analog_clock(lv_obj_t *obj);
 void remove_style_style_scale_analog_clock(lv_obj_t *obj);
 
+// Style: style_rollers_menu
+lv_style_t *get_style_style_rollers_menu_MAIN_DEFAULT();
+lv_style_t *get_style_style_rollers_menu_MAIN_FOCUS_KEY();
+lv_style_t *get_style_style_rollers_menu_SELECTED_DEFAULT();
+void add_style_style_rollers_menu(lv_obj_t *obj);
+void remove_style_style_rollers_menu(lv_obj_t *obj);
+
 
 
 #ifdef __cplusplus

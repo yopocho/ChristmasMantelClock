@@ -57,11 +57,32 @@ typedef enum  {
 	SCREEN_PREVIOUS
 } screens;
 
+typedef enum{
+	White,
+	Black,
+	Red,
+	Pink,
+	Purple,
+	Indigo,
+	Blue,
+	Cyan,
+	Teal,
+	Green,
+	Lime,
+	Yellow,
+	Amber,
+	Orange,
+	Brown,
+	Gray
+} colours_t;
+
+lv_color_t temp_selection_background_colour;
+lv_color_t temp_selection_text_colour;
+
 /* Set initial screen as SCREEN_DIGITAL_CLOCK (TODO: For now, this has to be retrieved from user settings eventually) */
 screens current_screen = SCREEN_NONE;
 screens next_screen = SCREEN_NONE;
 screens previous_screen = SCREEN_NONE;
-
 
 struct rtc_time current_time;
 
@@ -100,6 +121,13 @@ void set_var_time_min_global(const char *value) {
 
 void action_change_screen(lv_event_t *e) {
 	screens temp_screen = (screens) lv_event_get_user_data(e);
+	LOG_DBG("Action change screen called with target screen: %d", temp_screen);	
+
+	if(temp_screen == SCREEN_PREVIOUS) {
+		next_screen = previous_screen;
+		return;
+	}
+
 	if(current_screen != temp_screen) {
 		previous_screen = current_screen;
     	next_screen = temp_screen;
@@ -114,11 +142,175 @@ void action_digital_clock_set_time_save(lv_event_t *e) {
 	else if(previous_screen == SCREEN_ANALOG_CLOCK) {
 		next_screen = SCREEN_ANALOG_CLOCK;
 	}
-	LOG_DBG("Digital clock set time OK button pressed");
+	LOG_DBG("Digital clock set time save button pressed");
 }
 
 void action_menu_save(lv_event_t * e) {
 	// TODO: Implement saving brightness and such to NVM
+	// Get the value of the spinbox and rollers
+	LOG_DBG("Menu save button pressed");
+}
+
+void action_menu_text_colour_value_changed(lv_event_t *e) {
+    // TODO: Implement action menu_text_colour_value_changed here
+	uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_text_colour);
+	LOG_DBG("Menu text colour value changed with value: %d", roller_index);
+
+	switch(roller_index) {
+		case White:
+
+			break;
+		case Black:
+
+			break;
+		case Red:
+
+			break;
+		case Pink:
+
+			break;
+		case Purple:
+
+			break;
+		case Indigo:
+
+			break;
+		case Blue:
+
+			break;
+		case Cyan:
+
+			break;
+		case Teal:
+
+			break;
+		case Green:
+
+			break;
+		case Lime:
+
+			break;
+		case Yellow:
+
+			break;
+		case Amber:
+
+			break;
+		case Orange:
+
+			break;
+		case Brown:
+
+			break;
+		case Gray:
+
+			break;
+		default:
+			break;
+	}
+}
+
+void action_menu_background_colour_value_changed(lv_event_t *e) {
+    // TODO: Implement action menu_background_colour_value_changed here
+	uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_text_colour);
+	LOG_DBG("Menu background colour value changed with value: %d", lv_roller_get_selected(objects.roller_menu_backgound_colour));
+	switch(roller_index) {
+		case White:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Black:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Red:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Pink:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_PINK), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_PINK), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_PINK), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Purple:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_PURPLE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_PURPLE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_PURPLE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Indigo:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_INDIGO), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_INDIGO), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_INDIGO), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Blue:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Cyan:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_CYAN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_CYAN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_CYAN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Teal:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_TEAL), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_TEAL), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_TEAL), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Green:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Lime:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_LIME), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_LIME), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_LIME), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Yellow:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Amber:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_AMBER), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_AMBER), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_AMBER), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Orange:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Brown:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_BROWN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_BROWN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_BROWN), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		case Gray:
+			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_analog_clock, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN | LV_STATE_DEFAULT);
+			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN | LV_STATE_DEFAULT);
+			break;
+		default:
+			break;
+	}
+	lv_obj_invalidate(objects.scr_menu);
+	lv_obj_invalidate(objects.scr_analog_clock);
+	lv_obj_invalidate(objects.scr_digital_clock);
+}
+
+void action_menu_clock_type_value_changed(lv_event_t *e) {
+    // TODO: Implement action menu_clock_type_value_changed here
+	LOG_DBG("Menu clock type value changed with value: %d", lv_roller_get_selected(objects.roller_menu_clock_type));
+}
+
+void action_menu_brightness_value_changed(lv_event_t *e) {
+    // TODO: Implement action menu_brightness_value_changed here
+	LOG_DBG("Menu clock type value changed with value: %d", lv_spinbox_get_value(objects.spinbox_menu_brightness));
 }
 
 /**
@@ -313,7 +505,7 @@ int main(void)
 			switch(next_screen) {
 				case SCREEN_DIGITAL_CLOCK:
 					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
-					loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+					if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 					lv_indev_set_group(indev, groups.group_digital_clock);
 					lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
@@ -324,12 +516,13 @@ int main(void)
 					break;
 				case SCREEN_ANALOG_CLOCK:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
+					if(lv_screen_active() != objects.scr_analog_clock) loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK);
 					current_screen = SCREEN_ANALOG_CLOCK;
 					// TODO: Add group for analog clock
-					loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK);
 					break;
 				case SCREEN_DIGITAL_CLOCK_SET_TIME:
 					LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK_SET_TIME");
+					if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 					lv_indev_set_group(indev, groups.group_digital_clock_set_time);
 					lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_remove_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
@@ -340,12 +533,15 @@ int main(void)
 					break;
 				case SCREEN_ANALOG_CLOCK_SET_TIME:
 					LOG_DBG("Switching to SCREEN_ANALOG_CLOCK_SET_TIME");
+					if(lv_screen_active() != objects.scr_analog_clock) loadScreen(SCREEN_ID_SCR_ANALOG_CLOCK);
 					previous_screen = current_screen;
 					current_screen = SCREEN_ANALOG_CLOCK_SET_TIME;
 					break;
 				case SCREEN_MENU:
 					LOG_DBG("Switching to SCREEN_MENU");
-					loadScreen(SCREEN_ID_SCR_MENU);
+					if(lv_screen_active() != objects.scr_menu) loadScreen(SCREEN_ID_SCR_MENU);
+					temp_selection_text_colour = lv_obj_get_style_text_color(objects.spinbox_menu_brightness, LV_PART_MAIN); // Save the current text colour in case user cancels
+					temp_selection_background_colour = lv_obj_get_style_bg_color(objects.scr_menu, LV_PART_MAIN); // Save the current background colour in case user cancels
 					lv_indev_set_group(indev, groups.group_menu);
 					lv_group_focus_obj(objects.spinbox_menu_brightness);
 					previous_screen = current_screen;
