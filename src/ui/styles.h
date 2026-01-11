@@ -14,13 +14,13 @@ lv_style_t *get_style_style_buttons_digital_clock_set_time_MAIN_FOCUSED();
 void add_style_style_buttons_digital_clock_set_time(lv_obj_t *obj);
 void remove_style_style_buttons_digital_clock_set_time(lv_obj_t *obj);
 
-// Style: style_spinboxes_digital_time
-lv_style_t *get_style_style_spinboxes_digital_time_MAIN_DEFAULT();
-lv_style_t *get_style_style_spinboxes_digital_time_MAIN_FOCUS_KEY();
-lv_style_t *get_style_style_spinboxes_digital_time_MAIN_FOCUSED();
-lv_style_t *get_style_style_spinboxes_digital_time_CURSOR_DEFAULT();
-void add_style_style_spinboxes_digital_time(lv_obj_t *obj);
-void remove_style_style_spinboxes_digital_time(lv_obj_t *obj);
+// Style: style_spinboxes_digital_clock
+lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_DEFAULT();
+lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_FOCUS_KEY();
+lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_FOCUSED();
+lv_style_t *get_style_style_spinboxes_digital_clock_CURSOR_DEFAULT();
+void add_style_style_spinboxes_digital_clock(lv_obj_t *obj);
+void remove_style_style_spinboxes_digital_clock(lv_obj_t *obj);
 
 // Style: style_labels_digital_clock
 lv_style_t *get_style_style_labels_digital_clock_MAIN_DEFAULT();
@@ -36,6 +36,7 @@ void remove_style_style_labels_menu(lv_obj_t *obj);
 lv_style_t *get_style_style_spinboxes_menu_MAIN_DEFAULT();
 lv_style_t *get_style_style_spinboxes_menu_MAIN_FOCUS_KEY();
 lv_style_t *get_style_style_spinboxes_menu_CURSOR_DEFAULT();
+lv_style_t *get_style_style_spinboxes_menu_SELECTED_DEFAULT();
 void add_style_style_spinboxes_menu(lv_obj_t *obj);
 void remove_style_style_spinboxes_menu(lv_obj_t *obj);
 

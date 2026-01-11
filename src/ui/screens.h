@@ -46,7 +46,7 @@ typedef struct _objects_t {
     lv_obj_t *cont_menu_right;
     lv_obj_t *spinbox_menu_brightness;
     lv_obj_t *roller_menu_clock_type;
-    lv_obj_t *roller_menu_backgound_colour;
+    lv_obj_t *roller_menu_background_colour;
     lv_obj_t *roller_menu_text_colour;
     lv_obj_t *cont_menu_buttons;
     lv_obj_t *button_menu_cancel;
