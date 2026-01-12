@@ -21,6 +21,7 @@
 		zephyr,shell-uart = &usart2;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
+		// zephyr,flash-controller = &flash0;
 		zephyr,dtcm = &ccm0;
 		zephyr,display = &gc9a01;
 	};
@@ -186,4 +187,18 @@
 	pinctrl-names = "default";
 	cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		user_storage: partition@e0000 {
+			label = "storage";
+			reg = <0x000E0000 0x0000050>;
+		};
+	};
 };

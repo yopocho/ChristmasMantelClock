@@ -8,6 +8,8 @@
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/storage/flash_map.h>
+#include <zephyr/sys/crc.h>
 /* LVGL */
 #include <lvgl.h>
 /* UI */
@@ -15,13 +17,15 @@
 /* C */
 #include <string.h>
 #include <stdio.h>
-
+#include <stdint.h>
+ 
 /* Defines */
 #define LOG_LEVEL LOG_LEVEL_DBG
 #define WIDTH 240 // Display width
 #define HEIGHT 240 // Display height
 #define FRAME_TIME_TARGET 50 // ms. 20 FPS for a clock is plenty
 #define PWM_PERIOD PWM_USEC(10) // us
+#define SETTINGS_MAGIC 0xFEEDBEEF // Search data for flash journal
 
 /* LVGL */
 lv_indev_t * indev;
@@ -93,7 +97,7 @@ screens previous_screen = SCREEN_NONE;
 struct rtc_time current_time;
 
 /* User Settings struct typedef*/
-typedef struct {
+typedef struct __packed user_settings_t {
 	uint8_t brightness;
 	clock_types clock_type;
 	colours_t background_colour;
@@ -101,6 +105,19 @@ typedef struct {
 	uint8_t time_hr;
 	uint8_t time_min;
 } user_settings_t;
+
+/* Flash */
+static const struct flash_area *fa;
+static size_t write_offset;
+
+/* Flash settings */
+struct __packed settings_record {
+	uint32_t magic;
+	uint16_t version;
+	uint16_t length;
+	uint32_t crc;
+	struct user_settings_t settings;
+};
 
 /* Default user settings*/
 // TODO: For now, must all be read from NVM
@@ -126,6 +143,86 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 static void display_time(void);
 static int setup_dt(void);
 static int setup_lvgl(void);
+
+bool settings_flash_load(user_settings_t *out) {
+	size_t off = 0;
+	bool found = false;
+
+	while (off + sizeof(struct settings_record) <= fa->fa_size) {
+		struct settings_record rec;
+
+		flash_area_read(fa, off, &rec, sizeof(rec));
+
+		if(rec.magic != SETTINGS_MAGIC) {
+			break;
+		}
+
+		if(rec.length == sizeof(user_settings_t)) {
+			uint32_t crc = crc32_ieee(&rec.settings, sizeof(user_settings_t));
+			if(crc == rec.crc) {
+				*out = rec.settings;
+				found = true;
+			}
+		}
+
+		off += ROUND_UP(sizeof(rec), 4);
+	}
+	return found;
+}
+
+static size_t flash_find_tail(void) {
+	size_t off = 0;
+
+	while (off + sizeof(struct settings_record) <= fa->fa_size) {
+		struct settings_record rec;
+
+		flash_area_read(fa, off, &rec, sizeof(rec));
+
+		if(rec.magic != SETTINGS_MAGIC || rec.length != sizeof(user_settings_t)) {
+			break;
+		}
+
+		uint32_t crc = crc32_ieee(&rec.settings, sizeof(user_settings_t));
+
+		if(crc != rec.crc) {
+			break;
+		}
+
+		off += ROUND_UP(sizeof(rec), 4);
+	}
+
+	return off;
+}
+
+void settings_flash_init(void) {
+	flash_area_open(FIXED_PARTITION_ID(user_storage), &fa);
+	write_offset = flash_find_tail();
+}
+
+int settings_flash_save(const user_settings_t *in) {
+	int ret;
+
+	struct settings_record rec = {
+		.magic = SETTINGS_MAGIC,
+		.version = 1,
+		.length = sizeof(user_settings_t),
+		.crc = crc32_ieee(in, sizeof(user_settings_t)),
+		.settings = *in
+	};
+
+	size_t rec_size = ROUND_UP(sizeof(rec), 4);
+
+	if (write_offset + rec_size > fa->fa_size) {
+		flash_area_erase(fa, 0, fa->fa_size);
+		write_offset = 0;
+	}
+
+	ret = flash_area_write(fa, write_offset, &rec, sizeof(rec));
+	if(ret) return -1;
+	write_offset += rec_size;
+
+	return 0;
+}
 
 /* Required implementations for EEZ UI */
 const char *get_var_time_hr_global() {
@@ -176,6 +273,14 @@ void action_menu_save(lv_event_t * e) {
 	// TODO: Implement saving brightness and such to NVM
 	// Get the value of the spinbox and rollers
 	LOG_DBG("Menu save button pressed");
+
+	user_settings.background_colour = lv_roller_get_selected(objects.roller_menu_background_colour);
+	user_settings.text_colour = lv_roller_get_selected(objects.roller_menu_text_colour);
+	user_settings.brightness = lv_spinbox_get_value(objects.spinbox_menu_brightness);
+	user_settings.clock_type = lv_roller_get_selected(objects.roller_menu_clock_type);
+
+	int ret = settings_flash_save(&user_settings);
+	if(ret < 0) LOG_ERR("Writing to flash failed!");
 }
 
 void action_menu_text_colour_value_changed(lv_event_t *e) {
@@ -682,8 +787,25 @@ int main(void)
     }
 	LOG_INF("LVGL setup complete");
 
+	/* Flash setup */
+	settings_flash_init();
+
+	/* Read settings from flash */
+	if(settings_flash_load(&user_settings)) {
+		LOG_INF("Loaded settings from flash");
+		LOG_INF("%d, %d, %d, %d, %d, %d", 
+				user_settings.brightness, 
+				user_settings.clock_type, 
+				user_settings.background_colour, 
+				user_settings.text_colour, 
+				user_settings.time_hr, 
+				user_settings.time_min);
+	}
+	else LOG_WRN("Failed to retreive settings from flash");
+
 	LOG_DBG("Group digital_clock: %d", groups.group_digital_clock);
 	LOG_DBG("Group digital_clock_set_time: %d", groups.group_digital_clock_set_time);
+	LOG_DBG("sizeof(user_settings_t): %d", sizeof(user_settings_t));
 
 	/* MAIN LOOP */
 	LOG_INF("Running");
