@@ -27,8 +27,9 @@
 #define PWM_PERIOD PWM_USEC(10) // us
 #define SETTINGS_MAGIC 0xFEEDBEEF // Search data for flash journal
 
-/* Flag for making sure cb don't trigger too early */
+/* Flags */
 bool setup_done = false;
+bool user_settings_applied = false;
 
 /* LVGL */
 lv_indev_t * indev;
@@ -135,12 +136,10 @@ struct __packed settings_record {
 /* Default user settings*/
 // TODO: For now, must all be read from NVM
 user_settings_t user_settings = {
-	.brightness = 80,
+	.brightness = 100,
 	.clock_type = CLOCK_TYPE_DIGITAL,
-	.background_colour = Orange,
-	.text_colour = White,
-	.time_hr = 14,
-	.time_min = 49
+	.background_colour = Black,
+	.text_colour = White
 };
 
 /* Get devices from devicetree */
@@ -156,6 +155,13 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 static void display_time(void);
 static int setup_dt(void);
 static int setup_lvgl(void);
+void action_change_screen(lv_event_t * e);
+void action_digital_clock_set_time_save(lv_event_t * e);
+void action_menu_save(lv_event_t * e);
+void action_menu_clock_type_value_changed(lv_event_t * e);
+void action_menu_background_colour_value_changed(lv_event_t * e);
+void action_menu_text_colour_value_changed(lv_event_t * e);
+void action_menu_brightness_value_changed(lv_event_t * e);
 
 void check_screen_switching(void) {
 	/* Switch screens manually, updated through EEZ UI action callback */
@@ -164,6 +170,11 @@ void check_screen_switching(void) {
 			case SCREEN_DIGITAL_CLOCK:
 				LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
 				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+				if(!user_settings_applied) {
+					update_background_colour(user_settings.background_colour);
+					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
+					user_settings_applied = true;
+				}
 				lv_indev_set_group(indev, groups.group_digital_clock);
 				lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
@@ -176,6 +187,11 @@ void check_screen_switching(void) {
 			case SCREEN_ANALOG_CLOCK:
 				LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
 				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+				if(!user_settings_applied) {
+					update_background_colour(user_settings.background_colour);
+					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
+					user_settings_applied = true;
+				}
 				lv_indev_set_group(indev, groups.group_analog_clock);
 				lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
@@ -193,8 +209,8 @@ void check_screen_switching(void) {
 				lv_obj_add_flag(objects.cont_analog_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_remove_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_remove_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
-				// lv_spinbox_set_value(objects.spinbox_hr_digital_clock_set_time, current_time.tm_hour);
-				// lv_spinbox_set_value(objects.spinbox_min_digital_clock_set_time, current_time.tm_min);
+				lv_spinbox_set_value(objects.spinbox_hr_digital_clock_set_time, current_time.tm_hour);
+				lv_spinbox_set_value(objects.spinbox_min_digital_clock_set_time, current_time.tm_min);
 				lv_group_focus_obj(objects.spinbox_hr_digital_clock_set_time);
 				previous_screen = current_screen;
 				current_screen = SCREEN_DIGITAL_CLOCK_SET_TIME;
@@ -221,6 +237,18 @@ void check_screen_switching(void) {
 				temp_style_buttons_digital_clock_set_time = get_style_style_buttons_digital_clock_set_time_MAIN_DEFAULT();
 				lv_indev_set_group(indev, groups.group_menu);
 				lv_group_focus_obj(objects.spinbox_menu_brightness);
+				lv_obj_remove_event_cb(objects.spinbox_menu_brightness, action_menu_brightness_value_changed);
+				lv_obj_remove_event_cb(objects.roller_menu_background_colour, action_menu_background_colour_value_changed);
+				lv_obj_remove_event_cb(objects.roller_menu_text_colour, action_menu_text_colour_value_changed);
+				lv_obj_remove_event_cb(objects.roller_menu_clock_type, action_menu_clock_type_value_changed);
+				lv_spinbox_set_value(objects.spinbox_menu_brightness, user_settings.brightness);
+				lv_roller_set_selected(objects.roller_menu_background_colour, user_settings.background_colour, LV_ANIM_OFF);
+				lv_roller_set_selected(objects.roller_menu_text_colour, user_settings.text_colour, LV_ANIM_OFF);
+				lv_roller_set_selected(objects.roller_menu_clock_type, user_settings.clock_type, LV_ANIM_OFF);
+				lv_obj_add_event_cb(objects.spinbox_menu_brightness, action_menu_brightness_value_changed, LV_EVENT_VALUE_CHANGED, (void *)0);
+				lv_obj_add_event_cb(objects.roller_menu_background_colour, action_menu_background_colour_value_changed, LV_EVENT_KEY, (void *)0);
+				lv_obj_add_event_cb(objects.roller_menu_text_colour, action_menu_text_colour_value_changed, LV_EVENT_KEY, (void *)0);
+				lv_obj_add_event_cb(objects.roller_menu_clock_type, action_menu_clock_type_value_changed, LV_EVENT_KEY, (void *)0);
 				previous_screen = current_screen;
 				current_screen = SCREEN_MENU;
 				break;
@@ -301,7 +329,6 @@ void update_background_colour(colours_t colour) {
 			break;
 	}
 	lv_obj_invalidate(objects.scr_menu);
-	// lv_obj_invalidate(objects.scr_analog_clock);
 	lv_obj_invalidate(objects.scr_digital_clock);
 }
 
@@ -609,16 +636,22 @@ void action_change_screen(lv_event_t *e) {
 }
 
 void action_digital_clock_set_time_save(lv_event_t *e) {
-    // TODO: This implementation changes when adhering to the user set Clock Type (digital/analog)
 	if(setup_done) {
+
+		tm.tm_hour = lv_spinbox_get_value(objects.spinbox_hr_digital_clock_set_time);
+		tm.tm_min = lv_spinbox_get_value(objects.spinbox_min_digital_clock_set_time);
+		tm.tm_sec = 0;
+
+		set_date_time(rtc, &tm);
+
 		if(previous_screen == SCREEN_DIGITAL_CLOCK) {
 			next_screen = SCREEN_DIGITAL_CLOCK;
 		}
 		else if(previous_screen == SCREEN_ANALOG_CLOCK) {
 			next_screen = SCREEN_ANALOG_CLOCK;
 		}
-		LOG_DBG("Digital clock set time save button pressed");
 	}
+	LOG_DBG("Digital clock set time save button pressed");
 }
 
 void action_menu_save(lv_event_t * e) {
@@ -631,19 +664,11 @@ void action_menu_save(lv_event_t * e) {
 		user_settings.text_colour = lv_roller_get_selected(objects.roller_menu_text_colour);
 		user_settings.brightness = lv_spinbox_get_value(objects.spinbox_menu_brightness);
 		user_settings.clock_type = lv_roller_get_selected(objects.roller_menu_clock_type);
+
+		next_screen = user_settings.clock_type;
 	
 		int ret = settings_flash_save(&user_settings);
 		if(ret < 0) LOG_ERR("Writing to flash failed!");
-		// else {
-		// 	LOG_DBG("Settings written to flash");
-		// 	LOG_DBG("%d, %d, %d, %d, %d, %d", 
-		// 			user_settings.brightness, 
-		// 			user_settings.clock_type, 
-		// 			user_settings.background_colour, 
-		// 			user_settings.text_colour, 
-		// 			user_settings.time_hr, 
-		// 			user_settings.time_min);
-		// }
 	}
 }
 
@@ -861,40 +886,25 @@ int main(void)
     }
 	LOG_INF("LVGL setup complete");
 
-	// /* Flash setup */
-	// settings_flash_init();
+	/* Flash setup */
+	settings_flash_init();
 
-	// /* Read settings from flash */
-	// if(settings_flash_load(&user_settings)) {
-	// 	LOG_INF("Loaded settings from flash");
-	// 	LOG_INF("%d, %d, %d, %d, %d, %d", 
-	// 			user_settings.brightness, 
-	// 			user_settings.clock_type, 
-	// 			user_settings.background_colour, 
-	// 			user_settings.text_colour, 
-	// 			user_settings.time_hr, 
-	// 			user_settings.time_min);
-	// }
-	// else LOG_WRN("Failed to retreive settings from flash");
+	/* Read settings from flash */
+	if(settings_flash_load(&user_settings)) {
+		LOG_INF("Loaded settings from flash");
+		LOG_INF("%d, %d, %d, %d, %d, %d", 
+				user_settings.brightness, 
+				user_settings.clock_type, 
+				user_settings.background_colour, 
+				user_settings.text_colour, 
+				user_settings.time_hr, 
+				user_settings.time_min);
+	}
+	else LOG_WRN("Failed to retreive settings from flash");
 
-	// /* Apply the settings */
-	// next_screen = user_settings.clock_type;
-	// check_screen_switching();
-
-	// /* Tick LVGL and UI to handle changes */
-	// lv_task_handler(); // Handle LVGL-related tasks
-	// ui_tick(); // Handle EEZ UI-related tasks
-
-	// /* More applying settings */
-	// update_background_colour(user_settings.background_colour);
-	// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
+	/* Apply some settings */
+	next_screen = user_settings.clock_type;
 	ret = pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
-	
-	// /* Set menu options to reflect user settings */
-	// lv_spinbox_set_value(objects.spinbox_menu_brightness, user_settings.brightness);
-	// lv_roller_set_selected(objects.roller_menu_background_colour, user_settings.background_colour, LV_ANIM_OFF);
-	// lv_roller_set_selected(objects.roller_menu_text_colour, user_settings.text_colour, LV_ANIM_OFF);
-	// lv_roller_set_selected(objects.roller_menu_clock_type, user_settings.clock_type, LV_ANIM_OFF);
 
 	next_screen = SCREEN_DIGITAL_CLOCK;
 
