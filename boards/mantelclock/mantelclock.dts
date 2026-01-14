@@ -198,7 +198,7 @@
 
 		user_storage: partition@e0000 {
 			label = "storage";
-			reg = <0x000E0000 0x0000050>;
+			reg = <0x000E0000 DT_SIZE_K(128)>;
 		};
 	};
 };

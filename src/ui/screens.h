@@ -21,11 +21,10 @@ void ui_create_groups();
 
 typedef struct _objects_t {
     lv_obj_t *scr_digital_clock;
-    lv_obj_t *scr_analog_clock;
     lv_obj_t *scr_menu;
     lv_obj_t *cont_digital_clock_set_time;
     lv_obj_t *spinbox_hr_digital_clock_set_time;
-    lv_obj_t *label_colon_digital_clock_1;
+    lv_obj_t *label_colon_digital_clock_set_time;
     lv_obj_t *spinbox_min_digital_clock_set_time;
     lv_obj_t *cont_buttons_digital_clock_set_time;
     lv_obj_t *button_digital_clock_set_time_cancel;
@@ -57,15 +56,11 @@ extern objects_t objects;
 
 enum ScreensEnum {
     SCREEN_ID_SCR_DIGITAL_CLOCK = 1,
-    SCREEN_ID_SCR_ANALOG_CLOCK = 2,
-    SCREEN_ID_SCR_MENU = 3,
+    SCREEN_ID_SCR_MENU = 2,
 };
 
 void create_screen_scr_digital_clock();
 void tick_screen_scr_digital_clock();
-
-void create_screen_scr_analog_clock();
-void tick_screen_scr_analog_clock();
 
 void create_screen_scr_menu();
 void tick_screen_scr_menu();

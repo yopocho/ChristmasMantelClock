@@ -40,22 +40,6 @@ static void event_handler_cb_scr_digital_clock_scr_digital_clock(lv_event_t *e) 
     }
 }
 
-static void event_handler_cb_scr_analog_clock_scr_analog_clock(lv_event_t *e) {
-    lv_event_code_t event = lv_event_get_code(e);
-    if (event == LV_EVENT_SCREEN_LOAD_START) {
-        // group: group_menu
-        lv_group_remove_all_objs(groups.group_menu);
-        // group: group_digital_clock
-        lv_group_remove_all_objs(groups.group_digital_clock);
-        // group: group_digital_clock_set_time
-        lv_group_remove_all_objs(groups.group_digital_clock_set_time);
-        // group: group_analog_clock
-        lv_group_remove_all_objs(groups.group_analog_clock);
-        // group: grou_analog_clock_set_time
-        lv_group_remove_all_objs(groups.grou_analog_clock_set_time);
-    }
-}
-
 static void event_handler_cb_scr_menu_scr_menu(lv_event_t *e) {
     lv_event_code_t event = lv_event_get_code(e);
     if (event == LV_EVENT_SCREEN_LOAD_START) {
@@ -131,18 +115,20 @@ void create_screen_scr_digital_clock() {
                     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
                     add_style_style_spinboxes_digital_clock(obj);
+                    lv_obj_set_style_translate_y(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // label_colon_digital_clock_1
+                    // label_colon_digital_clock_set_time
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                    objects.label_colon_digital_clock_1 = obj;
+                    objects.label_colon_digital_clock_set_time = obj;
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, LV_PCT(7), LV_SIZE_CONTENT);
                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
                     add_style_style_labels_digital_clock(obj);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_translate_y(obj, -1, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_translate_y(obj, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_translate_x(obj, -1, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_label_set_text(obj, ":");
                 }
                 {
@@ -163,6 +149,7 @@ void create_screen_scr_digital_clock() {
                     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
                     add_style_style_spinboxes_digital_clock(obj);
+                    lv_obj_set_style_translate_y(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
             }
         }
@@ -191,7 +178,7 @@ void create_screen_scr_digital_clock() {
                     lv_obj_t *obj = lv_button_create(parent_obj);
                     objects.button_digital_clock_set_time_cancel = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(8));
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(7));
                     lv_obj_add_event_cb(obj, action_change_screen, LV_EVENT_KEY, (void *)0);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -217,7 +204,7 @@ void create_screen_scr_digital_clock() {
                     lv_obj_t *obj = lv_button_create(parent_obj);
                     objects.button_digital_clock_set_time_menu = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(8));
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(7));
                     lv_obj_add_event_cb(obj, action_change_screen, LV_EVENT_KEY, (void *)4);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -243,7 +230,7 @@ void create_screen_scr_digital_clock() {
                     lv_obj_t *obj = lv_button_create(parent_obj);
                     objects.button_digital_clock_set_time_ok = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(8));
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(7));
                     lv_obj_add_event_cb(obj, action_digital_clock_set_time_save, LV_EVENT_KEY, (void *)0);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -251,13 +238,6 @@ void create_screen_scr_digital_clock() {
                     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
                     add_style_style_buttons_digital_clock_set_time(obj);
-                    lv_obj_set_style_outline_opa(obj, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-                    lv_obj_set_style_border_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-                    lv_obj_set_style_border_width(obj, 2, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-                    lv_obj_set_style_border_side(obj, LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-                    lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-                    lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
-                    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);
                     {
                         lv_obj_t *parent_obj = obj;
                         {
@@ -326,7 +306,7 @@ void create_screen_scr_digital_clock() {
                     add_style_style_labels_digital_clock(obj);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_translate_y(obj, -2, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_translate_x(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_translate_x(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_label_set_text(obj, ":");
                 }
                 {
@@ -346,6 +326,36 @@ void create_screen_scr_digital_clock() {
                     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
                     add_style_style_labels_digital_clock(obj);
                     lv_label_set_text(obj, "");
+                }
+            }
+        }
+        {
+            // cont_analog_clock
+            lv_obj_t *obj = lv_obj_create(parent_obj);
+            objects.cont_analog_clock = obj;
+            lv_obj_set_pos(obj, 0, 0);
+            lv_obj_set_size(obj, 240, 240);
+            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // scale_analog_clock
+                    lv_obj_t *obj = lv_scale_create(parent_obj);
+                    objects.scale_analog_clock = obj;
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, 240, 240);
+                    lv_scale_set_mode(obj, LV_SCALE_MODE_ROUND_INNER);
+                    lv_scale_set_range(obj, 1, 12);
+                    lv_scale_set_total_tick_count(obj, 61);
+                    lv_scale_set_major_tick_every(obj, 5);
+                    lv_scale_set_label_show(obj, true);
+                    add_style_style_scale_analog_clock(obj);
                 }
             }
         }
@@ -373,65 +383,6 @@ void tick_screen_scr_digital_clock() {
             tick_value_change_obj = NULL;
         }
     }
-}
-
-void create_screen_scr_analog_clock() {
-    lv_obj_t *obj = lv_obj_create(0);
-    objects.scr_analog_clock = obj;
-    lv_obj_set_pos(obj, 0, 0);
-    lv_obj_set_size(obj, 240, 240);
-    lv_obj_add_event_cb(obj, event_handler_cb_scr_analog_clock_scr_analog_clock, LV_EVENT_ALL, 0);
-    lv_obj_add_state(obj, LV_STATE_DISABLED);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
-    {
-        lv_obj_t *parent_obj = obj;
-        {
-            // cont_analog_clock
-            lv_obj_t *obj = lv_obj_create(parent_obj);
-            objects.cont_analog_clock = obj;
-            lv_obj_set_pos(obj, 0, 0);
-            lv_obj_set_size(obj, 240, 240);
-            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            {
-                lv_obj_t *parent_obj = obj;
-                {
-                    // scale_analog_clock
-                    lv_obj_t *obj = lv_scale_create(parent_obj);
-                    objects.scale_analog_clock = obj;
-                    lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, 240, 240);
-                    lv_scale_set_mode(obj, LV_SCALE_MODE_ROUND_INNER);
-                    lv_scale_set_range(obj, 1, 12);
-                    lv_scale_set_total_tick_count(obj, 60);
-                    lv_scale_set_major_tick_every(obj, 5);
-                    lv_scale_set_label_show(obj, true);
-                    lv_obj_clear_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
-                    lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-                    lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
-                    lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
-                    lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
-                    add_style_style_scale_analog_clock(obj);
-                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_clip_corner(obj, true, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_clip_corner(obj, true, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-                    lv_obj_set_style_arc_rounded(obj, false, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-                    lv_obj_set_style_line_rounded(obj, true, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-                }
-            }
-        }
-    }
-    
-    tick_screen_scr_analog_clock();
-}
-
-void tick_screen_scr_analog_clock() {
 }
 
 void create_screen_scr_menu() {
@@ -483,7 +434,7 @@ void create_screen_scr_menu() {
                     lv_obj_set_style_flex_main_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_END, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_flex_track_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_pad_row(obj, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_pad_row(obj, 11, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = obj;
                         {
@@ -551,7 +502,7 @@ void create_screen_scr_menu() {
                             lv_obj_t *obj = lv_spinbox_create(parent_obj);
                             objects.spinbox_menu_brightness = obj;
                             lv_obj_set_pos(obj, 0, 0);
-                            lv_obj_set_size(obj, LV_PCT(40), LV_PCT(13));
+                            lv_obj_set_size(obj, LV_PCT(40), LV_PCT(12));
                             lv_spinbox_set_digit_format(obj, 3, 0);
                             lv_spinbox_set_range(obj, 10, 100);
                             lv_spinbox_set_rollover(obj, true);
@@ -564,8 +515,6 @@ void create_screen_scr_menu() {
                             lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                             lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
                             add_style_style_spinboxes_menu(obj);
-                            lv_obj_set_style_margin_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                         {
                             // roller_menu_clock_type
@@ -583,7 +532,7 @@ void create_screen_scr_menu() {
                             lv_obj_t *obj = lv_roller_create(parent_obj);
                             objects.roller_menu_background_colour = obj;
                             lv_obj_set_pos(obj, 0, -363);
-                            lv_obj_set_size(obj, LV_PCT(76), 20);
+                            lv_obj_set_size(obj, LV_SIZE_CONTENT, 20);
                             lv_roller_set_options(obj, "White\nBlack\nRed\nPink\nPurple\nIndigo\nBlue\nCyan\nTeal\nGreen\nLime\nYellow\nAmber\nOrange\nBrown\nGray", LV_ROLLER_MODE_INFINITE);
                             lv_roller_set_selected(obj, 5, LV_ANIM_OFF);
                             lv_obj_add_event_cb(obj, action_menu_background_colour_value_changed, LV_EVENT_KEY, (void *)0);
@@ -595,8 +544,9 @@ void create_screen_scr_menu() {
                             lv_obj_t *obj = lv_roller_create(parent_obj);
                             objects.roller_menu_text_colour = obj;
                             lv_obj_set_pos(obj, 0, -335);
-                            lv_obj_set_size(obj, LV_PCT(76), 20);
+                            lv_obj_set_size(obj, LV_SIZE_CONTENT, 20);
                             lv_roller_set_options(obj, "White\nBlack\nRed\nPink\nPurple\nIndigo\nBlue\nCyan\nTeal\nGreen\nLime\nYellow\nAmber\nOrange\nBrown\nGray", LV_ROLLER_MODE_INFINITE);
+                            lv_roller_set_selected(obj, 5, LV_ANIM_OFF);
                             lv_obj_add_event_cb(obj, action_menu_text_colour_value_changed, LV_EVENT_KEY, (void *)0);
                             add_style_style_rollers_menu(obj);
                             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -610,7 +560,7 @@ void create_screen_scr_menu() {
             lv_obj_t *obj = lv_obj_create(parent_obj);
             objects.cont_menu_buttons = obj;
             lv_obj_set_pos(obj, 0, 0);
-            lv_obj_set_size(obj, 240, LV_PCT(10));
+            lv_obj_set_size(obj, 240, LV_PCT(12));
             lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -632,7 +582,7 @@ void create_screen_scr_menu() {
                     lv_obj_t *obj = lv_button_create(parent_obj);
                     objects.button_menu_cancel = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(80));
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_PCT(60));
                     lv_obj_add_event_cb(obj, action_change_screen, LV_EVENT_KEY, (void *)6);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -656,7 +606,7 @@ void create_screen_scr_menu() {
                     lv_obj_t *obj = lv_button_create(parent_obj);
                     objects.button_menu_save = obj;
                     lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, 50, LV_PCT(80));
+                    lv_obj_set_size(obj, 50, LV_PCT(60));
                     lv_obj_add_event_cb(obj, action_menu_save, LV_EVENT_KEY, (void *)6);
                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
                     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -701,7 +651,6 @@ void ui_create_groups() {
 typedef void (*tick_screen_func_t)();
 tick_screen_func_t tick_screen_funcs[] = {
     tick_screen_scr_digital_clock,
-    tick_screen_scr_analog_clock,
     tick_screen_scr_menu,
 };
 void tick_screen(int screen_index) {
@@ -719,6 +668,5 @@ void create_screens() {
     lv_disp_set_theme(dispp, theme);
     
     create_screen_scr_digital_clock();
-    create_screen_scr_analog_clock();
     create_screen_scr_menu();
 }
