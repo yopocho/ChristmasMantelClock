@@ -408,7 +408,7 @@ void remove_style_style_buttons_menu(lv_obj_t *obj) {
 
 void init_style_style_scale_analog_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_align(style, LV_ALIGN_CENTER);
-    lv_style_set_text_font(style, &ui_font_courier_new_16);
+    lv_style_set_text_font(style, &ui_font_courier_new_40);
     lv_style_set_text_color(style, lv_color_hex(0xffffffff));
     lv_style_set_arc_color(style, lv_color_hex(0xffffffff));
     lv_style_set_arc_width(style, 0);
@@ -428,7 +428,7 @@ lv_style_t *get_style_style_scale_analog_clock_MAIN_DEFAULT() {
 
 void init_style_style_scale_analog_clock_INDICATOR_DEFAULT(lv_style_t *style) {
     lv_style_set_line_color(style, lv_color_hex(0xffffffff));
-    lv_style_set_length(style, 10);
+    lv_style_set_length(style, 15);
     lv_style_set_line_width(style, 3);
     lv_style_set_radius(style, 0);
     lv_style_set_clip_corner(style, true);
@@ -550,6 +550,35 @@ void remove_style_style_rollers_menu(lv_obj_t *obj) {
 };
 
 //
+// Style: style_labels_analog_clock
+//
+
+void init_style_style_labels_analog_clock_MAIN_DEFAULT(lv_style_t *style) {
+    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_font(style, &ui_font_courier_new_40);
+};
+
+lv_style_t *get_style_style_labels_analog_clock_MAIN_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_style_labels_analog_clock_MAIN_DEFAULT(style);
+    }
+    return style;
+};
+
+void add_style_style_labels_analog_clock(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_add_style(obj, get_style_style_labels_analog_clock_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+};
+
+void remove_style_style_labels_analog_clock(lv_obj_t *obj) {
+    (void)obj;
+    lv_obj_remove_style(obj, get_style_style_labels_analog_clock_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
+};
+
+//
 //
 //
 
@@ -565,6 +594,7 @@ void add_style(lv_obj_t *obj, int32_t styleIndex) {
         add_style_style_buttons_menu,
         add_style_style_scale_analog_clock,
         add_style_style_rollers_menu,
+        add_style_style_labels_analog_clock,
     };
     add_style_funcs[styleIndex](obj);
 }
@@ -581,6 +611,7 @@ void remove_style(lv_obj_t *obj, int32_t styleIndex) {
         remove_style_style_buttons_menu,
         remove_style_style_scale_analog_clock,
         remove_style_style_rollers_menu,
+        remove_style_style_labels_analog_clock,
     };
     remove_style_funcs[styleIndex](obj);
 }

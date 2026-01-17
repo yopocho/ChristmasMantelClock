@@ -36,6 +36,13 @@ typedef struct _objects_t {
     lv_obj_t *label_time_min_digital_clock;
     lv_obj_t *cont_analog_clock;
     lv_obj_t *scale_analog_clock;
+    lv_obj_t *line_hr_scale_analog_clock;
+    lv_obj_t *line_min_scale_analog_clock;
+    lv_obj_t *led_dot_analog_clock;
+    lv_obj_t *label_analog_clock_3;
+    lv_obj_t *label_analog_clock_6;
+    lv_obj_t *label_analog_clock_9;
+    lv_obj_t *label_analog_clock_12;
     lv_obj_t *cont_scr_menu;
     lv_obj_t *cont_menu_left;
     lv_obj_t *label_menu_brightness;

@@ -91,6 +91,7 @@ typedef enum{
 	Gray
 } colours_t;
 
+/* Style definitions */
 lv_color_t temp_selection_background_colour;
 lv_color_t temp_selection_text_colour;
 lv_style_t * temp_style_spinboxes_menu;
@@ -753,17 +754,15 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 static void display_time(void) {
 	char temp_time_str_hr[3];
 	char temp_time_str_min[3];
-	if(current_screen == SCREEN_DIGITAL_CLOCK) {
-		get_date_time(rtc, &current_time);
-		sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
-		sprintf(temp_time_str_min, "%02d", current_time.tm_min);
-		set_var_time_hr_global(temp_time_str_hr); // Update EEZ UI global hour variable
-		set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
+	get_date_time(rtc, &current_time);
+	sprintf(temp_time_str_hr, "%02d", current_time.tm_hour);
+	sprintf(temp_time_str_min, "%02d", current_time.tm_min);
+	set_var_time_hr_global(temp_time_str_hr); // Update EEZ UI global hour variable
+	set_var_time_min_global(temp_time_str_min); // Update EEZ UI global minute variable
+	if(current_screen == SCREEN_ANALOG_CLOCK) {
+		lv_scale_set_line_needle_value(objects.scale_analog_clock, objects.line_hr_scale_analog_clock, 60, (((current_time.tm_hour % 12) * 5) + (current_time.tm_min / 12)));
+		lv_scale_set_line_needle_value(objects.scale_analog_clock, objects.line_min_scale_analog_clock, 90, current_time.tm_min);
 	}
-	else if(current_screen == SCREEN_ANALOG_CLOCK) {
-		// TODO: Add analog clock time update (implementation for time showing through a scale widget probably, which needs rotational angles for the hands)
-	}
-
 }
 
 /**
@@ -810,13 +809,6 @@ static int setup_dt(void) {
 		LOG_ERR("Keypad device is not ready\n");
 		return ret;
 	}
-
-	// /* Set the RTC calender*/
-	// ret = set_date_time(rtc, &tm);
-	// if (ret < 0) {
-	// 	LOG_ERR("RTC set_date_time failed\n");
-    //     return ret;
-    // }
 
 	return 0;
 }
@@ -906,11 +898,16 @@ int main(void)
 	next_screen = user_settings.clock_type;
 	ret = pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 
-	next_screen = SCREEN_DIGITAL_CLOCK;
+	next_screen = user_settings.clock_type;
 
 	/* Tick LVGL and UI to handle changes */
 	lv_task_handler(); // Handle LVGL-related tasks
 	ui_tick(); // Handle EEZ UI-related tasks
+
+	/* Set scale style manually as they're not implemented in EEZ studio*/
+	lv_scale_set_range(objects.scale_analog_clock, 0, 60);
+    lv_scale_set_angle_range(objects.scale_analog_clock, 360);
+    lv_scale_set_rotation(objects.scale_analog_clock, 270);
 
 	/* MUST BE SET TO TRUE /AFTER/ LOADING USER SETTINGS AND ASSIGNING TO WIDGETS */
 	setup_done = true;
