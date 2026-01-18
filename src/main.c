@@ -135,7 +135,6 @@ struct __packed settings_record {
 };
 
 /* Default user settings*/
-// TODO: For now, must all be read from NVM
 user_settings_t user_settings = {
 	.brightness = 100,
 	.clock_type = CLOCK_TYPE_DIGITAL,
@@ -164,6 +163,9 @@ void action_menu_background_colour_value_changed(lv_event_t * e);
 void action_menu_text_colour_value_changed(lv_event_t * e);
 void action_menu_brightness_value_changed(lv_event_t * e);
 
+/**
+ * @brief Utility function for switching screens
+ */
 void check_screen_switching(void) {
 	/* Switch screens manually, updated through EEZ UI action callback */
 	if(next_screen != current_screen) {
@@ -260,6 +262,9 @@ void check_screen_switching(void) {
 	}
 }
 
+/**
+ * @brief Utility function for changing the display background colour 
+ */
 void update_background_colour(colours_t colour) {
 	switch(colour) {
 		case White:
@@ -520,6 +525,11 @@ void update_text_colour(colours_t colour) {
 	lv_obj_report_style_change(NULL); // Only do this if the solution below does not work
 }
 
+/**
+ * @brief Read the most recent data written to flash
+ * 
+ * @retval True if succesful, false if failed
+ */
 bool settings_flash_load(user_settings_t *out) {
 	size_t off = 0;
 	bool found = false;
@@ -546,6 +556,11 @@ bool settings_flash_load(user_settings_t *out) {
 	return found;
 }
 
+/**
+ * @brief Utility function for finding the memory offset of the most recent flash write
+ * 
+ * @retval Flash memory offset
+ */
 static size_t flash_find_tail(void) {
 	size_t off = 0;
 
@@ -570,11 +585,19 @@ static size_t flash_find_tail(void) {
 	return off;
 }
 
+/**
+ * @brief Initilize the internal STM32 flash
+ */
 void settings_flash_init(void) {
 	flash_area_open(FIXED_PARTITION_ID(user_storage), &fa);
 	write_offset = flash_find_tail();
 }
 
+/**
+ * @brief Write settings struct to internal STM32 flash
+ * 
+ * @retval -1 if writing to flash failed, else 0
+ */
 int settings_flash_save(const user_settings_t *in) {
 	int ret;
 
@@ -601,24 +624,39 @@ int settings_flash_save(const user_settings_t *in) {
 }
 
 /* Required implementations for EEZ UI */
+/**
+ * @brief EEZ Studio utility function for global variables
+ */
 const char *get_var_time_hr_global() {
     return time_hr_global;
 }
 
+/**
+ * @brief EEZ Studio utility function for global variables
+ */
 void set_var_time_hr_global(const char *value) {
     strncpy(time_hr_global, value, sizeof(time_hr_global) / sizeof(char));
     time_hr_global[sizeof(time_hr_global) / sizeof(char) - 1] = 0;
 }
 
+/**
+ * @brief EEZ Studio utility function for global variables
+ */
 const char *get_var_time_min_global() {
     return time_min_global;
 }
 
+/**
+ * @brief EEZ Studio utility function for global variables
+ */
 void set_var_time_min_global(const char *value) {
     strncpy(time_min_global, value, sizeof(time_min_global) / sizeof(char));
     time_min_global[sizeof(time_min_global) / sizeof(char) - 1] = 0;
 }
 
+/**
+ * @brief LVGL Action CB for changing screens
+ */
 void action_change_screen(lv_event_t *e) {
 	if(setup_done) {
 		screens temp_screen = (screens) lv_event_get_user_data(e);
@@ -636,6 +674,9 @@ void action_change_screen(lv_event_t *e) {
 	}
 }
 
+/**
+ * @brief LVGL Action CB for updating the RTC with the selected time
+ */
 void action_digital_clock_set_time_save(lv_event_t *e) {
 	if(setup_done) {
 
@@ -655,9 +696,10 @@ void action_digital_clock_set_time_save(lv_event_t *e) {
 	LOG_DBG("Digital clock set time save button pressed");
 }
 
+/**
+ * @brief LVGL Action CB for saving the selected user settings to flash
+ */
 void action_menu_save(lv_event_t * e) {
-	// TODO: Implement saving brightness and such to NVM
-	// Get the value of the spinbox and rollers
 	if(setup_done) {
 		LOG_DBG("Menu save button pressed");
 	
@@ -673,6 +715,9 @@ void action_menu_save(lv_event_t * e) {
 	}
 }
 
+/**
+ * @brief LVGL Action CB for updating the text and accent colours
+ */
 void action_menu_text_colour_value_changed(lv_event_t *e) {
     // TODO: If new styles get added, this function has to get updated
 	if(setup_done) {
@@ -685,6 +730,9 @@ void action_menu_text_colour_value_changed(lv_event_t *e) {
 
 }
 
+/**
+ * @brief LVGL Action CB for updating the display background colour
+ */
 void action_menu_background_colour_value_changed(lv_event_t *e) {
 	if(setup_done) {
 		uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_background_colour);
@@ -694,15 +742,19 @@ void action_menu_background_colour_value_changed(lv_event_t *e) {
 	}
 }
 
+/**
+ * @brief LVGL Action CB for updating the clock type
+ */
 void action_menu_clock_type_value_changed(lv_event_t *e) {
-    // TODO: Implement action menu_clock_type_value_changed here
 	if(setup_done) {
 		LOG_DBG("Menu clock type value changed with value: %d", lv_roller_get_selected(objects.roller_menu_clock_type));
 	}
 }
 
+/**
+ * @brief LVGL Action CB for updating the display brightness
+ */
 void action_menu_brightness_value_changed(lv_event_t *e) {
-    // TODO: Implement action menu_brightness_value_changed here
 	if(setup_done) {
 		float temp_brightness = lv_spinbox_get_value(objects.spinbox_menu_brightness);
 		LOG_DBG("Menu clock type value changed with value: %d", temp_brightness);
@@ -751,6 +803,9 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 	return ret;
 }
 
+/**
+ * @brief Utility function for polling the RTC and updating the relevant variables and LVGL widgets with the current time
+ */
 static void display_time(void) {
 	char temp_time_str_hr[3];
 	char temp_time_str_min[3];
@@ -845,11 +900,6 @@ static int setup_lvgl(void) {
 
 	display_time();
 
-	/* Set initial screen */
-	if(user_settings.clock_type == CLOCK_TYPE_DIGITAL) next_screen = SCREEN_DIGITAL_CLOCK;
-	else if(user_settings.clock_type == CLOCK_TYPE_ANALOG) next_screen = SCREEN_ANALOG_CLOCK;
-	else return -1;
-
 	return 0;
 }
 
@@ -860,7 +910,6 @@ static int setup_lvgl(void) {
  */
 int main(void)
 {
-	// TODO: NEED the user settings a.s.a.p. as I need to use it in many places throughout the setup (RTC setting, init values etc.)
 	int ret;
 	/* devicetree setup*/
 	ret = setup_dt();	
@@ -898,6 +947,7 @@ int main(void)
 	next_screen = user_settings.clock_type;
 	ret = pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 
+	/* Set initial screen */
 	next_screen = user_settings.clock_type;
 
 	/* Tick LVGL and UI to handle changes */
