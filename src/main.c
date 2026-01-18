@@ -68,7 +68,8 @@ typedef enum  {
 	SCREEN_ANALOG_CLOCK_SET_TIME,
 	SCREEN_MENU,
 	SCREEN_NONE,
-	SCREEN_PREVIOUS
+	SCREEN_PREVIOUS,
+	SCREEN_ACTIVE_CLOCK
 } screens;
 
 /* Enum for possible UI colours (cherry-picked from LVGL Main Palette) */
@@ -177,6 +178,7 @@ void check_screen_switching(void) {
 					update_background_colour(user_settings.background_colour);
 					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
 					user_settings_applied = true;
+					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 				}
 				lv_indev_set_group(indev, groups.group_digital_clock);
 				lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
@@ -184,6 +186,7 @@ void check_screen_switching(void) {
 				lv_obj_add_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_add_flag(objects.cont_analog_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_group_focus_obj(objects.label_time_hr_digital_clock);
+				display_time();
 				previous_screen = current_screen;
 				current_screen = SCREEN_DIGITAL_CLOCK;
 				break;
@@ -194,6 +197,7 @@ void check_screen_switching(void) {
 					update_background_colour(user_settings.background_colour);
 					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
 					user_settings_applied = true;
+					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 				}
 				lv_indev_set_group(indev, groups.group_analog_clock);
 				lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
@@ -201,6 +205,7 @@ void check_screen_switching(void) {
 				lv_obj_add_flag(objects.cont_buttons_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_remove_flag(objects.cont_analog_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_group_focus_obj(objects.scale_analog_clock);
+				display_time();
 				previous_screen = current_screen;
 				current_screen = SCREEN_ANALOG_CLOCK;
 				break;
@@ -662,8 +667,17 @@ void action_change_screen(lv_event_t *e) {
 		screens temp_screen = (screens) lv_event_get_user_data(e);
 		LOG_DBG("Action change screen called with target screen: %d", temp_screen);	
 	
+		/* Menu cancel button */
 		if(temp_screen == SCREEN_PREVIOUS) {
+			/* Revert the changes made in menu to saved ones */
+			update_background_colour(user_settings.background_colour);
+			// update_text_colour(user_settings.text_colour); // FIXME
 			next_screen = previous_screen;
+			return;
+		}
+
+		if(temp_screen == SCREEN_ACTIVE_CLOCK) {
+			next_screen = user_settings.clock_type;
 			return;
 		}
 	
@@ -890,6 +904,11 @@ static int setup_lvgl(void) {
 	/* Init UI */
 	ui_init();
 
+	/* Set scale style manually as they're not implemented in EEZ studio*/
+	lv_scale_set_range(objects.scale_analog_clock, 0, 60);
+    lv_scale_set_angle_range(objects.scale_analog_clock, 360);
+    lv_scale_set_rotation(objects.scale_analog_clock, 270);
+
 	/* Disable blanking the display to prevent having to redraw */
 	ret = display_blanking_off(GC9A01);
 	k_sleep(K_MSEC(120));
@@ -897,8 +916,6 @@ static int setup_lvgl(void) {
 		LOG_ERR("Failed to turn blanking off (error %d)", ret);
 		return ret;
 	}
-
-	display_time();
 
 	return 0;
 }
@@ -945,19 +962,12 @@ int main(void)
 
 	/* Apply some settings */
 	next_screen = user_settings.clock_type;
-	ret = pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 
 	/* Set initial screen */
 	next_screen = user_settings.clock_type;
 
-	/* Tick LVGL and UI to handle changes */
-	lv_task_handler(); // Handle LVGL-related tasks
-	ui_tick(); // Handle EEZ UI-related tasks
-
-	/* Set scale style manually as they're not implemented in EEZ studio*/
-	lv_scale_set_range(objects.scale_analog_clock, 0, 60);
-    lv_scale_set_angle_range(objects.scale_analog_clock, 360);
-    lv_scale_set_rotation(objects.scale_analog_clock, 270);
+	/* Initial time */
+	display_time();
 
 	/* MUST BE SET TO TRUE /AFTER/ LOADING USER SETTINGS AND ASSIGNING TO WIDGETS */
 	setup_done = true;

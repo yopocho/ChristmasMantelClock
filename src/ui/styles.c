@@ -71,17 +71,22 @@ void remove_style_style_buttons_digital_clock_set_time(lv_obj_t *obj) {
 
 void init_style_style_spinboxes_digital_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_text_font(style, &ui_font_courier_new_72);
-    lv_style_set_radius(style, 0);
     lv_style_set_bg_opa(style, 0);
-    lv_style_set_border_opa(style, 0);
-    lv_style_set_pad_top(style, 0);
     lv_style_set_pad_left(style, 0);
     lv_style_set_pad_right(style, 0);
     lv_style_set_pad_row(style, 0);
     lv_style_set_pad_column(style, 0);
-    lv_style_set_text_align(style, LV_TEXT_ALIGN_LEFT);
     lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_border_width(style, 0);
+    lv_style_set_layout(style, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW);
+    lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_cross_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_track_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_text_align(style, LV_TEXT_ALIGN_CENTER);
+    lv_style_set_pad_top(style, 0);
     lv_style_set_pad_bottom(style, 0);
+    lv_style_set_line_width(style, 0);
 };
 
 lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_DEFAULT() {
@@ -99,7 +104,13 @@ void init_style_style_spinboxes_digital_clock_MAIN_FOCUS_KEY(lv_style_t *style) 
     lv_style_set_outline_opa(style, 255);
     lv_style_set_line_color(style, lv_color_hex(0xffffffff));
     lv_style_set_outline_width(style, 1);
-    lv_style_set_outline_pad(style, 0);
+    lv_style_set_outline_pad(style, -6);
+    lv_style_set_border_width(style, 0);
+    lv_style_set_layout(style, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW);
+    lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_cross_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_track_place(style, LV_FLEX_ALIGN_CENTER);
 };
 
 lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_FOCUS_KEY() {
@@ -205,7 +216,6 @@ void remove_style_style_labels_menu(lv_obj_t *obj) {
 void init_style_style_spinboxes_menu_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_text_color(style, lv_color_hex(0xffffffff));
     lv_style_set_text_font(style, &ui_font_courier_new_16);
-    lv_style_set_border_opa(style, 0);
     lv_style_set_bg_opa(style, 0);
     lv_style_set_radius(style, 0);
     lv_style_set_pad_top(style, 0);
@@ -214,7 +224,12 @@ void init_style_style_spinboxes_menu_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_pad_right(style, 0);
     lv_style_set_pad_row(style, 0);
     lv_style_set_pad_column(style, 0);
-    lv_style_set_text_align(style, LV_TEXT_ALIGN_AUTO);
+    lv_style_set_border_width(style, 0);
+    lv_style_set_layout(style, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW);
+    lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_cross_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_track_place(style, LV_FLEX_ALIGN_CENTER);
 };
 
 lv_style_t *get_style_style_spinboxes_menu_MAIN_DEFAULT() {
@@ -231,6 +246,12 @@ void init_style_style_spinboxes_menu_MAIN_FOCUS_KEY(lv_style_t *style) {
     lv_style_set_outline_width(style, 1);
     lv_style_set_outline_opa(style, 255);
     lv_style_set_outline_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_layout(style, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW);
+    lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_cross_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_flex_track_place(style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_outline_pad(style, 2);
 };
 
 lv_style_t *get_style_style_spinboxes_menu_MAIN_FOCUS_KEY() {
@@ -257,26 +278,11 @@ lv_style_t *get_style_style_spinboxes_menu_CURSOR_DEFAULT() {
     return style;
 };
 
-void init_style_style_spinboxes_menu_SELECTED_DEFAULT(lv_style_t *style) {
-    lv_style_set_text_align(style, LV_TEXT_ALIGN_LEFT);
-};
-
-lv_style_t *get_style_style_spinboxes_menu_SELECTED_DEFAULT() {
-    static lv_style_t *style;
-    if (!style) {
-        style = lv_malloc(sizeof(lv_style_t));
-        lv_style_init(style);
-        init_style_style_spinboxes_menu_SELECTED_DEFAULT(style);
-    }
-    return style;
-};
-
 void add_style_style_spinboxes_menu(lv_obj_t *obj) {
     (void)obj;
     lv_obj_add_style(obj, get_style_style_spinboxes_menu_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_style(obj, get_style_style_spinboxes_menu_MAIN_FOCUS_KEY(), LV_PART_MAIN | LV_STATE_FOCUS_KEY);
     lv_obj_add_style(obj, get_style_style_spinboxes_menu_CURSOR_DEFAULT(), LV_PART_CURSOR | LV_STATE_DEFAULT);
-    lv_obj_add_style(obj, get_style_style_spinboxes_menu_SELECTED_DEFAULT(), LV_PART_SELECTED | LV_STATE_DEFAULT);
 };
 
 void remove_style_style_spinboxes_menu(lv_obj_t *obj) {
@@ -284,7 +290,6 @@ void remove_style_style_spinboxes_menu(lv_obj_t *obj) {
     lv_obj_remove_style(obj, get_style_style_spinboxes_menu_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_remove_style(obj, get_style_style_spinboxes_menu_MAIN_FOCUS_KEY(), LV_PART_MAIN | LV_STATE_FOCUS_KEY);
     lv_obj_remove_style(obj, get_style_style_spinboxes_menu_CURSOR_DEFAULT(), LV_PART_CURSOR | LV_STATE_DEFAULT);
-    lv_obj_remove_style(obj, get_style_style_spinboxes_menu_SELECTED_DEFAULT(), LV_PART_SELECTED | LV_STATE_DEFAULT);
 };
 
 //

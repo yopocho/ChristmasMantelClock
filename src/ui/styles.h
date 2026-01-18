@@ -34,7 +34,6 @@ void remove_style_style_labels_menu(lv_obj_t *obj);
 lv_style_t *get_style_style_spinboxes_menu_MAIN_DEFAULT();
 lv_style_t *get_style_style_spinboxes_menu_MAIN_FOCUS_KEY();
 lv_style_t *get_style_style_spinboxes_menu_CURSOR_DEFAULT();
-lv_style_t *get_style_style_spinboxes_menu_SELECTED_DEFAULT();
 void add_style_style_spinboxes_menu(lv_obj_t *obj);
 void remove_style_style_spinboxes_menu(lv_obj_t *obj);
 
