@@ -127,6 +127,7 @@ lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_FOCUS_KEY() {
 
 void init_style_style_spinboxes_digital_clock_CURSOR_DEFAULT(lv_style_t *style) {
     lv_style_set_bg_opa(style, 0);
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_spinboxes_digital_clock_CURSOR_DEFAULT() {
@@ -473,6 +474,7 @@ lv_style_t *get_style_style_rollers_menu_MAIN_FOCUS_KEY() {
 
 void init_style_style_rollers_menu_SELECTED_DEFAULT(lv_style_t *style) {
     lv_style_set_bg_opa(style, 0);
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_rollers_menu_SELECTED_DEFAULT() {
