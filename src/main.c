@@ -23,29 +23,33 @@
  
 /* Defines */
 #define LOG_LEVEL LOG_LEVEL_DBG
-#define WIDTH 240 // Display width
-#define HEIGHT 240 // Display height
 #define FRAME_TIME_TARGET 50 // ms. 20 FPS for a clock is plenty
 #define PWM_PERIOD PWM_USEC(10) // us
 #define SETTINGS_MAGIC 0xFEEDBEEF // Search data for flash journal
 
-/* Flags */
-bool setup_done = false;
-bool first_flush_complete = false;
-uint8_t flush_cb_cntr = 0;
+/* Prototypes */
+static int set_date_time(const struct device *rtc, struct rtc_time *settable_time);
+static int get_date_time(const struct device *rtc, struct rtc_time *target_time);
+static void display_time(void);
+static int setup_dt(void);
+static int setup_lvgl(void);
+void update_background_colour(colours_t colour);
+void update_text_colour(colours_t colour);
+void action_change_screen(lv_event_t * e);
+void action_digital_clock_set_time_save(lv_event_t * e);
+void action_menu_save(lv_event_t * e);
+void action_menu_clock_type_value_changed(lv_event_t * e);
+void action_menu_background_colour_value_changed(lv_event_t * e);
+void action_menu_text_colour_value_changed(lv_event_t * e);
+void action_menu_brightness_value_changed(lv_event_t * e);
+void action_flush_finished(lv_event_t *e);
 
-/* LVGL */
-lv_indev_t * indev;
-
-/* PWM */
-uint8_t brightness;
-
-/* Logging */
-LOG_MODULE_REGISTER(logging_mantelclock, LOG_LEVEL_DBG);
-
-/* Required global variables for EEZ UI */
-char time_hr_global[100] = { 0 };
-char time_min_global[100] = { 0 };
+/* Get devices from devicetree */
+static const struct gpio_dt_spec dbg_led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+static const struct pwm_dt_spec  LCD_kathode_pwm = PWM_DT_SPEC_GET(DT_ALIAS(kathodepwm));
+static const struct device *GC9A01 = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+static const struct device *const rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
+static const struct device *indev_dt = DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
 
 /* RTC Calender */
 static struct rtc_time tm = {
@@ -64,6 +68,24 @@ user_settings_t user_settings = {
 	.background_colour = Black,
 	.text_colour = White
 };
+
+/* Flags */
+bool setup_done = false;
+bool first_flush_complete = false;
+uint8_t flush_cb_cntr = 0;
+
+/* LVGL */
+lv_indev_t * indev;
+
+/* PWM */
+uint8_t brightness;
+
+/* Logging */
+LOG_MODULE_REGISTER(logging_mantelclock, LOG_LEVEL_DBG);
+
+/* Required global variables for EEZ UI */
+char time_hr_global[100] = { 0 };
+char time_min_global[100] = { 0 };
 
 /* Style definitions */
 lv_color_t temp_selection_background_colour;
@@ -109,30 +131,6 @@ struct __packed settings_record {
 	uint32_t crc;
 	struct user_settings_t settings;
 };
-
-/* Get devices from devicetree */
-static const struct gpio_dt_spec dbg_led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-static const struct pwm_dt_spec  LCD_kathode_pwm = PWM_DT_SPEC_GET(DT_ALIAS(kathodepwm));
-static const struct device *GC9A01 = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-static const struct device *const rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-static const struct device *indev_dt = DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
-
-/* Prototypes */
-static int set_date_time(const struct device *rtc, struct rtc_time *settable_time);
-static int get_date_time(const struct device *rtc, struct rtc_time *target_time);
-static void display_time(void);
-static int setup_dt(void);
-static int setup_lvgl(void);
-void update_background_colour(colours_t colour);
-void update_text_colour(colours_t colour);
-void action_change_screen(lv_event_t * e);
-void action_digital_clock_set_time_save(lv_event_t * e);
-void action_menu_save(lv_event_t * e);
-void action_menu_clock_type_value_changed(lv_event_t * e);
-void action_menu_background_colour_value_changed(lv_event_t * e);
-void action_menu_text_colour_value_changed(lv_event_t * e);
-void action_menu_brightness_value_changed(lv_event_t * e);
-void action_flush_finished(lv_event_t *e);
 
 /**
  * @brief Helper function for converting between local colour enum index and LVGL lv_color_t
