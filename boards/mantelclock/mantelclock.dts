@@ -112,8 +112,6 @@
 };
 
 &clk_lse {
-	// compatible = "st,stm32-lse-clock"; //does this need adding?
-	// clock-frequency = <32768>;
 	status = "okay";
 };
 
@@ -123,20 +121,20 @@
 };
 
 &pll {
-	div-m = <15>;											// PLL input divider
-	mul-n = <144>;											// PLL multiplier
+	div-m = <25>;											// PLL input divider
+	mul-n = <336>;											// PLL multiplier
 	div-p = <2>;											// PLL output divider for main system clock
-	div-q = <5>;		
+	div-q = <7>;		
 	clocks = <&clk_hse>;
 	status = "okay";
 };
 
-&rcc { //This might be wrong smh # ChatGPT
+&rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(120)>;
+	clock-frequency = <DT_FREQ_M(168)>;
 	ahb-prescaler = <1>;									// Division on AHB bus
-	apb1-prescaler = <4>;									// Divide APB1 clock by 4 (max 50 MHz for STM32F4)
-	apb2-prescaler = <2>;									// Division on APB2
+	apb1-prescaler = <8>;									// Divide APB1 clock by 8 for 21MHz SPI (42MHz unstable)
+	apb2-prescaler = <4>;									// Division on APB2
 };
 
 &usart2 {
@@ -144,7 +142,6 @@
 };
 
 &timers2 {
-	// st,prescaler = <100>;
 	status = "okay";
 
 	pwm2: pwm {
@@ -157,7 +154,7 @@
 
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
-		 	 <&rcc STM32_SRC_LSE RTC_SEL(1)>; // Is this correct?
+		 	 <&rcc STM32_SRC_LSE RTC_SEL(1)>;
 	status = "okay";
 
 	backup_regs {
@@ -186,4 +183,18 @@
 	pinctrl-names = "default";
 	cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		user_storage: partition@e0000 {
+			label = "storage";
+			reg = <0x000E0000 DT_SIZE_K(128)>;
+		};
+	};
 };
