@@ -179,6 +179,10 @@ lv_color_t get_color_from_index(colours_t colour);
 
 /**
  * @brief Helper function for converting between local colour enum index and LVGL lv_color_t
+ * 
+ * @param colour colours_t colour index
+ * 
+ * @retval lv_color_t from colour colours_t index
  */
 lv_color_t get_color_from_index(colours_t colour) {
 	switch(colour) {
@@ -351,6 +355,8 @@ void check_screen_switching(void) {
 
 /**
  * @brief Utility function for changing the display background colour 
+ * 
+ * @param colour colours_t colour index
  */
 void update_background_colour(colours_t colour) {
 	lv_color_t current_bg_colour = lv_obj_get_style_bg_color(objects.scr_digital_clock, LV_PART_MAIN);
@@ -363,6 +369,11 @@ void update_background_colour(colours_t colour) {
 	}
 }
 
+/**
+ * @brief Utility function for changing the text and accent colours of the UI
+ * 
+ * @param colour colours_t colour index
+ */
 void update_text_colour(colours_t colour) {
 	lv_color_t current_text_colour = lv_obj_get_style_text_color(objects.label_time_hr_digital_clock, LV_PART_MAIN);
 	lv_color_t target_colour = get_color_from_index(colour);
@@ -406,6 +417,8 @@ void update_text_colour(colours_t colour) {
 
 /**
  * @brief Read the most recent data written to flash
+ * 
+ * @param out Pointer to user_settings_t struct which the settings get loaded into
  * 
  * @retval True if succesful, false if failed
  */
@@ -475,6 +488,8 @@ void settings_flash_init(void) {
 /**
  * @brief Write settings struct to internal STM32 flash
  * 
+ * @param in Pointer to user_settings_t struct with settings to be saved to flash
+ * 
  * @retval -1 if writing to flash failed, else 0
  */
 int settings_flash_save(const user_settings_t *in) {
@@ -504,14 +519,18 @@ int settings_flash_save(const user_settings_t *in) {
 
 /* Required implementations for EEZ UI */
 /**
- * @brief EEZ Studio utility function for global variables
+ * @brief EEZ Studio utility function for UI variables
+ * 
+ * @retval Value of UI variable time_hr
  */
 const char *get_var_time_hr_global() {
     return time_hr_global;
 }
 
 /**
- * @brief EEZ Studio utility function for global variables
+ * @brief EEZ Studio utility function for UI variables
+ * 
+ * @param value Value to write to UI variable time_hr
  */
 void set_var_time_hr_global(const char *value) {
     strncpy(time_hr_global, value, sizeof(time_hr_global) / sizeof(char));
@@ -519,14 +538,18 @@ void set_var_time_hr_global(const char *value) {
 }
 
 /**
- * @brief EEZ Studio utility function for global variables
+ * @brief EEZ Studio utility function for UI variables
+ * 
+ * @retval Value of UI variable time_min
  */
 const char *get_var_time_min_global() {
     return time_min_global;
 }
 
 /**
- * @brief EEZ Studio utility function for global variables
+ * @brief EEZ Studio utility function for UI variables
+ * 
+ * @param value Value to write to UI variable time_min
  */
 void set_var_time_min_global(const char *value) {
     strncpy(time_min_global, value, sizeof(time_min_global) / sizeof(char));
@@ -535,6 +558,8 @@ void set_var_time_min_global(const char *value) {
 
 /**
  * @brief LVGL Action CB for changing screens
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_change_screen(lv_event_t *e) {
 	if(setup_done) {
@@ -564,6 +589,8 @@ void action_change_screen(lv_event_t *e) {
 
 /**
  * @brief LVGL Action CB for updating the RTC with the selected time
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_digital_clock_set_time_save(lv_event_t *e) {
 	if(setup_done) {
@@ -586,6 +613,8 @@ void action_digital_clock_set_time_save(lv_event_t *e) {
 
 /**
  * @brief LVGL Action CB for saving the selected user settings to flash
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_save(lv_event_t * e) {
 	if(setup_done) {
@@ -605,6 +634,8 @@ void action_menu_save(lv_event_t * e) {
 
 /**
  * @brief LVGL Action CB for updating the text and accent colours
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_text_colour_value_changed(lv_event_t *e) {
 	if(setup_done) {
@@ -619,6 +650,8 @@ void action_menu_text_colour_value_changed(lv_event_t *e) {
 
 /**
  * @brief LVGL Action CB for updating the display background colour
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_background_colour_value_changed(lv_event_t *e) {
 	if(setup_done) {
@@ -631,6 +664,8 @@ void action_menu_background_colour_value_changed(lv_event_t *e) {
 
 /**
  * @brief LVGL Action CB for updating the clock type
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_clock_type_value_changed(lv_event_t *e) {
 	if(setup_done) {
@@ -640,6 +675,8 @@ void action_menu_clock_type_value_changed(lv_event_t *e) {
 
 /**
  * @brief LVGL Action CB for updating the display brightness
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_brightness_value_changed(lv_event_t *e) {
 	if(setup_done) {
@@ -653,6 +690,9 @@ void action_menu_brightness_value_changed(lv_event_t *e) {
 
 /**
  * @brief Set the current time of the RTC device pointed at by *rtc using the tm struct
+ * 
+ * @param rtc Device handle for RTC device 
+ * @param settable_time Pointer to rtc_time struct with the desired time to be set 
  * 
  * @retval Zephyr retval
  */
@@ -672,6 +712,9 @@ static int set_date_time(const struct device *rtc, struct rtc_time *settable_tim
 /**
  * @brief Read the current time from the RTC device pointed at by *rtc
  * 
+ * @param rtc Device handle for RTC device
+ * @param settable_time Pointer to rtc_time struct the current time gets loaded into  
+ * 
  * @retval Zephyr retval
 */
 static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
@@ -683,9 +726,6 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 		LOG_ERR("Cannot read date time: %d\n", ret);
 		return ret;
 	}
-
-	// LOG_INF("RTC date and time: %04d-%02d-%02d %02d:%02d:%02d\n", target_time->tm_year + 1900,
-	//        target_time->tm_mon + 1, target_time->tm_mday, target_time->tm_hour, target_time->tm_min, target_time->tm_sec);
 
 	return ret;
 }
@@ -865,9 +905,3 @@ int main(void)
 
 	return -1;
 }
-
-/* TODO: List of improvements
- * Optimize LVGL config (CONFIG_LV_CONF_MINIMAL=y)
- * Optimize memory allocation through config
- * Increase the SPI speed to maximum stable(!)
- */
