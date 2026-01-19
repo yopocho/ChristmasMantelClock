@@ -33,7 +33,6 @@ bool user_settings_applied = false;
 
 /* LVGL */
 lv_indev_t * indev;
-lv_mem_monitor_t mon;
 
 /* PWM */
 uint8_t brightness;
@@ -96,14 +95,25 @@ typedef enum{
 lv_color_t temp_selection_background_colour;
 lv_color_t temp_selection_text_colour;
 lv_style_t * temp_style_spinboxes_menu;
+lv_style_t * temp_style_spinboxes_menu_FOCUSKEY;
+lv_style_t * temp_style_spinboxes_menu_CURSOR;
 lv_style_t * temp_style_spinboxes_digital_clock;
-lv_style_t * temp_scale_analog_clock;
+lv_style_t * temp_style_spinboxes_digital_clock_FOCUSKEY;
+lv_style_t * temp_style_spinboxes_digital_clock_CURSOR;
+lv_style_t * temp_style_scale_analog_clock;
+lv_style_t * temp_style_scale_analog_clock_INDICATOR;
+lv_style_t * temp_style_scale_analog_clock_ITEMS;
 lv_style_t * temp_style_rollers_menu;
+lv_style_t * temp_style_rollers_menu_FOCUSKEY;
+lv_style_t * temp_style_rollers_menu_SELECTED;
+lv_style_t * temp_style_line_hr_analog_clock;
+lv_style_t * temp_style_line_min_analog_clock;
 lv_style_t * temp_style_labels_menu;
 lv_style_t * temp_style_labels_digital_clock;
-lv_style_t * temp_style_dropdown_menu_clock_type;
 lv_style_t * temp_style_buttons_menu;
+lv_style_t * temp_style_buttons_menu_FOCUSKEY;
 lv_style_t * temp_style_buttons_digital_clock_set_time;
+lv_style_t * temp_style_buttons_digital_clock_set_time_FOCUSKEY;
 
 /* Set initial screen as SCREEN_DIGITAL_CLOCK (TODO: For now, this has to be retrieved from user settings eventually) */
 screens current_screen = SCREEN_NONE;
@@ -156,6 +166,8 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 static void display_time(void);
 static int setup_dt(void);
 static int setup_lvgl(void);
+void update_background_colour(colours_t colour);
+void update_text_colour(colours_t colour);
 void action_change_screen(lv_event_t * e);
 void action_digital_clock_set_time_save(lv_event_t * e);
 void action_menu_save(lv_event_t * e);
@@ -163,6 +175,67 @@ void action_menu_clock_type_value_changed(lv_event_t * e);
 void action_menu_background_colour_value_changed(lv_event_t * e);
 void action_menu_text_colour_value_changed(lv_event_t * e);
 void action_menu_brightness_value_changed(lv_event_t * e);
+lv_color_t get_color_from_index(colours_t colour);
+
+/**
+ * @brief Helper function for converting between local colour enum index and LVGL lv_color_t
+ */
+lv_color_t get_color_from_index(colours_t colour) {
+	switch(colour) {
+		case White:
+			return lv_color_white();
+			break;
+		case Black:
+			return lv_color_black();
+			break;
+		case Red:
+			return lv_palette_main(LV_PALETTE_RED);
+			break;
+		case Pink:
+			return lv_palette_main(LV_PALETTE_PINK);
+			break;
+		case Purple:
+			return lv_palette_main(LV_PALETTE_PURPLE);
+			break;
+		case Indigo:
+			return lv_palette_main(LV_PALETTE_INDIGO);
+			break;
+		case Blue:
+			return lv_palette_main(LV_PALETTE_BLUE);
+			break;
+		case Cyan:
+			return lv_palette_main(LV_PALETTE_CYAN);
+			break;
+		case Teal:
+			return lv_palette_main(LV_PALETTE_TEAL);
+			break;
+		case Green:
+			return lv_palette_main(LV_PALETTE_GREEN);
+			break;
+		case Lime:
+			return lv_palette_main(LV_PALETTE_LIME);
+			break;
+		case Yellow:
+			return lv_palette_main(LV_PALETTE_YELLOW);
+			break;
+		case Amber:
+			return lv_palette_main(LV_PALETTE_AMBER);
+			break;
+		case Orange:
+			return lv_palette_main(LV_PALETTE_ORANGE);
+			break;
+		case Brown:
+			return lv_palette_main(LV_PALETTE_BROWN);
+			break;
+		case Gray:
+			return lv_palette_main(LV_PALETTE_GREY);
+			break;	
+		default:
+			return lv_color_white();
+			break;
+		};
+	return lv_color_white();
+}
 
 /**
  * @brief Utility function for switching screens
@@ -173,12 +246,11 @@ void check_screen_switching(void) {
 		switch(next_screen) {
 			case SCREEN_DIGITAL_CLOCK:
 				LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
-				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 				if(!user_settings_applied) {
-					update_background_colour(user_settings.background_colour);
 					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
-					user_settings_applied = true;
+					update_background_colour(user_settings.background_colour);
 					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
+					user_settings_applied = true;
 				}
 				lv_indev_set_group(indev, groups.group_digital_clock);
 				lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
@@ -187,17 +259,17 @@ void check_screen_switching(void) {
 				lv_obj_add_flag(objects.cont_analog_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_group_focus_obj(objects.label_time_hr_digital_clock);
 				display_time();
+				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 				previous_screen = current_screen;
 				current_screen = SCREEN_DIGITAL_CLOCK;
 				break;
 			case SCREEN_ANALOG_CLOCK:
 				LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
-				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 				if(!user_settings_applied) {
-					update_background_colour(user_settings.background_colour);
 					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
-					user_settings_applied = true;
+					update_background_colour(user_settings.background_colour);
 					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
+					user_settings_applied = true;
 				}
 				lv_indev_set_group(indev, groups.group_analog_clock);
 				lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
@@ -206,6 +278,7 @@ void check_screen_switching(void) {
 				lv_obj_remove_flag(objects.cont_analog_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_group_focus_obj(objects.scale_analog_clock);
 				display_time();
+				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
 				previous_screen = current_screen;
 				current_screen = SCREEN_ANALOG_CLOCK;
 				break;
@@ -232,17 +305,26 @@ void check_screen_switching(void) {
 			case SCREEN_MENU:
 				LOG_DBG("Switching to SCREEN_MENU");
 				if(lv_screen_active() != objects.scr_menu) loadScreen(SCREEN_ID_SCR_MENU);
-				temp_selection_text_colour = lv_obj_get_style_text_color(objects.label_colon_digital_clock, LV_PART_MAIN); // Save the current text colour in case user cancels
-				temp_selection_background_colour = lv_obj_get_style_bg_color(objects.scr_menu, LV_PART_MAIN); // Save the current background colour in case user cancels
 				temp_style_spinboxes_menu = get_style_style_spinboxes_menu_MAIN_DEFAULT();
+				temp_style_spinboxes_menu_FOCUSKEY = get_style_style_spinboxes_menu_MAIN_FOCUS_KEY();
+				temp_style_spinboxes_menu_CURSOR = get_style_style_spinboxes_menu_CURSOR_DEFAULT();
 				temp_style_spinboxes_digital_clock = get_style_style_spinboxes_digital_clock_MAIN_DEFAULT();
-				temp_scale_analog_clock = get_style_style_scale_analog_clock_MAIN_DEFAULT();
+				temp_style_spinboxes_digital_clock_FOCUSKEY = get_style_style_spinboxes_digital_clock_MAIN_FOCUS_KEY();
+				temp_style_spinboxes_digital_clock_CURSOR = get_style_style_spinboxes_digital_clock_CURSOR_DEFAULT();
+				temp_style_scale_analog_clock = get_style_style_scale_analog_clock_MAIN_DEFAULT();
+				temp_style_scale_analog_clock_INDICATOR = get_style_style_scale_analog_clock_INDICATOR_DEFAULT();
+				temp_style_scale_analog_clock_ITEMS = get_style_style_scale_analog_clock_ITEMS_DEFAULT();
 				temp_style_rollers_menu = get_style_style_rollers_menu_MAIN_DEFAULT();
+				temp_style_rollers_menu_FOCUSKEY = get_style_style_rollers_menu_MAIN_FOCUS_KEY();
+				temp_style_rollers_menu_SELECTED = get_style_style_rollers_menu_SELECTED_DEFAULT();
 				temp_style_labels_menu = get_style_style_labels_menu_MAIN_DEFAULT();
 				temp_style_labels_digital_clock = get_style_style_labels_digital_clock_MAIN_DEFAULT();
-				temp_style_dropdown_menu_clock_type = get_style_style_dropdown_menu_clock_type_MAIN_DEFAULT();
 				temp_style_buttons_menu = get_style_style_buttons_menu_MAIN_DEFAULT();
+				temp_style_buttons_menu_FOCUSKEY = get_style_style_buttons_menu_MAIN_FOCUS_KEY();
 				temp_style_buttons_digital_clock_set_time = get_style_style_buttons_digital_clock_set_time_MAIN_DEFAULT();
+				temp_style_buttons_digital_clock_set_time_FOCUSKEY = get_style_style_buttons_digital_clock_set_time_MAIN_FOCUS_KEY();
+				temp_style_line_hr_analog_clock = get_style_style_line_hr_analog_clock_MAIN_DEFAULT();
+				temp_style_line_min_analog_clock = get_style_style_line_min_analog_clock_MAIN_DEFAULT();
 				lv_indev_set_group(indev, groups.group_menu);
 				lv_group_focus_obj(objects.spinbox_menu_brightness);
 				lv_obj_remove_event_cb(objects.spinbox_menu_brightness, action_menu_brightness_value_changed);
@@ -271,263 +353,55 @@ void check_screen_switching(void) {
  * @brief Utility function for changing the display background colour 
  */
 void update_background_colour(colours_t colour) {
-	switch(colour) {
-		case White:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Black:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_color_black(), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Red:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Pink:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_PINK), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_PINK), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Purple:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_PURPLE), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_PURPLE), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Indigo:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_INDIGO), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_INDIGO), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Blue:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Cyan:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_CYAN), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_CYAN), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Teal:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_TEAL), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_TEAL), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Green:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Lime:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_LIME), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_LIME), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Yellow:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_YELLOW), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Amber:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_AMBER), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_AMBER), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Orange:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_ORANGE), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Brown:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_BROWN), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_BROWN), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		case Gray:
-			lv_obj_set_style_bg_color(objects.scr_menu, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN | LV_STATE_DEFAULT);
-			lv_obj_set_style_bg_color(objects.scr_digital_clock, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN | LV_STATE_DEFAULT);
-			break;
-		default:
-			break;
+	lv_color_t current_bg_colour = lv_obj_get_style_bg_color(objects.scr_digital_clock, LV_PART_MAIN);
+	lv_color_t target_colour = get_color_from_index(colour);
+	if(lv_color_to_u32(target_colour) != lv_color_to_u32(current_bg_colour)) {
+		lv_obj_set_style_bg_color(objects.scr_menu, target_colour, LV_PART_MAIN | LV_STATE_DEFAULT);
+		lv_obj_set_style_bg_color(objects.scr_digital_clock, target_colour, LV_PART_MAIN | LV_STATE_DEFAULT);
+		lv_obj_invalidate(objects.scr_menu);
+		lv_obj_invalidate(objects.scr_digital_clock);
 	}
-	lv_obj_invalidate(objects.scr_menu);
-	lv_obj_invalidate(objects.scr_digital_clock);
 }
 
 void update_text_colour(colours_t colour) {
-
-		switch(colour) {
-		case White:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_color_white());
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_color_white());
-			lv_style_set_text_color(temp_scale_analog_clock, lv_color_white());
-			lv_style_set_text_color(temp_style_rollers_menu, lv_color_white());
-			lv_style_set_text_color(temp_style_labels_menu, lv_color_white());
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_color_white());
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_color_white());
-			lv_style_set_text_color(temp_style_buttons_menu, lv_color_white());
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_color_white());
-			break;
-		case Black:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_color_black());
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_color_black());
-			lv_style_set_text_color(temp_scale_analog_clock, lv_color_black());
-			lv_style_set_text_color(temp_style_rollers_menu, lv_color_black());
-			lv_style_set_text_color(temp_style_labels_menu, lv_color_black());
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_color_black());
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_color_black());
-			lv_style_set_text_color(temp_style_buttons_menu, lv_color_black());
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_color_black());
-			break;
-		case Red:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_RED));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_RED));
-			break;
-		case Pink:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_PINK));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_PINK));
-			break;
-		case Purple:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_PURPLE));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_PURPLE));
-			break;
-		case Indigo:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_INDIGO));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_INDIGO));
-			break;
-		case Blue:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_BLUE));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_BLUE));
-			break;
-		case Cyan:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_CYAN));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_CYAN));
-			break;
-		case Teal:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_TEAL));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_TEAL));
-			break;
-		case Green:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_GREEN));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_GREEN));
-			break;
-		case Lime:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_LIME));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_LIME));
-			break;
-		case Yellow:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_YELLOW));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_YELLOW));
-			break;
-		case Amber:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_AMBER));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_AMBER));
-			break;
-		case Orange:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_ORANGE));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_ORANGE));
-			break;
-		case Brown:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_BROWN));
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_BROWN));
-			break;
-		case Gray:
-			lv_style_set_text_color(temp_style_spinboxes_menu, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_style_spinboxes_digital_clock, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_scale_analog_clock, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_style_rollers_menu, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_style_labels_menu, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_style_labels_digital_clock, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_style_dropdown_menu_clock_type, lv_palette_main(LV_PALETTE_GREY));
-			lv_style_set_text_color(temp_style_buttons_menu, lv_palette_main(LV_PALETTE_GREY));	
-			lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, lv_palette_main(LV_PALETTE_GREY));
-			break;
-		default:
-			// Do nothing
-			break;
+	lv_color_t current_text_colour = lv_obj_get_style_text_color(objects.label_time_hr_digital_clock, LV_PART_MAIN);
+	lv_color_t target_colour = get_color_from_index(colour);
+	if(lv_color_to_u32(target_colour) != lv_color_to_u32(current_text_colour)) {
+		lv_style_set_text_color(temp_style_spinboxes_menu, target_colour);
+		lv_style_set_text_color(temp_style_spinboxes_menu_FOCUSKEY, target_colour);
+		lv_style_set_text_color(temp_style_spinboxes_menu_CURSOR, target_colour);
+		lv_style_set_border_color(temp_style_spinboxes_menu, target_colour);
+		lv_style_set_border_color(temp_style_spinboxes_menu_FOCUSKEY, target_colour);
+		lv_style_set_text_color(temp_style_spinboxes_digital_clock, target_colour);
+		lv_style_set_text_color(temp_style_spinboxes_digital_clock_FOCUSKEY, target_colour);
+		lv_style_set_text_color(temp_style_spinboxes_digital_clock_CURSOR, target_colour);
+		lv_style_set_border_color(temp_style_spinboxes_digital_clock, target_colour);
+		lv_style_set_border_color(temp_style_spinboxes_digital_clock_FOCUSKEY, target_colour);
+		lv_style_set_line_color(temp_style_scale_analog_clock, target_colour);
+		lv_style_set_line_color(temp_style_scale_analog_clock_INDICATOR, target_colour);
+		lv_style_set_line_color(temp_style_scale_analog_clock_ITEMS, target_colour);
+		lv_style_set_text_color(temp_style_rollers_menu, target_colour);
+		lv_style_set_text_color(temp_style_rollers_menu_FOCUSKEY, target_colour);
+		lv_style_set_text_color(temp_style_rollers_menu_SELECTED, target_colour);
+		lv_style_set_border_color(temp_style_rollers_menu, target_colour);
+		lv_style_set_border_color(temp_style_rollers_menu_FOCUSKEY, target_colour);
+		lv_style_set_text_color(temp_style_labels_menu, target_colour);
+		lv_style_set_text_color(temp_style_labels_digital_clock, target_colour);
+		lv_style_set_text_color(temp_style_buttons_menu, target_colour);
+		lv_style_set_text_color(temp_style_buttons_menu_FOCUSKEY, target_colour);
+		lv_style_set_border_color(temp_style_buttons_menu, target_colour);
+		lv_style_set_border_color(temp_style_buttons_menu_FOCUSKEY, target_colour);
+		lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, target_colour);
+		lv_style_set_text_color(temp_style_buttons_digital_clock_set_time_FOCUSKEY, target_colour);
+		lv_style_set_border_color(temp_style_buttons_digital_clock_set_time, target_colour);
+		lv_style_set_border_color(temp_style_buttons_digital_clock_set_time_FOCUSKEY, target_colour);
+		lv_style_set_line_color(temp_style_line_hr_analog_clock, target_colour);
+		lv_style_set_line_color(temp_style_line_min_analog_clock, target_colour);
+		lv_led_set_color(objects.led_dot_analog_clock, target_colour);
+		// lv_obj_invalidate(objects.led_dot_analog_clock);
+		// lv_obj_report_style_change(NULL); // Invalidate every object style
+		lv_obj_invalidate(lv_screen_active());
 	}
-
-	lv_obj_report_style_change(NULL); // Only do this if the solution below does not work
 }
 
 /**
@@ -733,7 +607,6 @@ void action_menu_save(lv_event_t * e) {
  * @brief LVGL Action CB for updating the text and accent colours
  */
 void action_menu_text_colour_value_changed(lv_event_t *e) {
-    // TODO: If new styles get added, this function has to get updated
 	if(setup_done) {
 		uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_text_colour);
 	
@@ -985,11 +858,6 @@ int main(void)
 		if((current_screen == SCREEN_DIGITAL_CLOCK) || (current_screen == SCREEN_ANALOG_CLOCK)) {
 			display_time();
 		}
-		lv_mem_monitor(&mon);
-		LOG_DBG("used: %6d (%3d %%), frag: %3d %%, biggest free: %6d\n", (int)mon.total_size - mon.free_size,
-        mon.used_pct,
-        mon.frag_pct,
-        (int)mon.free_biggest_size);
 
 		/* Time for other Zephyr-related threads */
 		k_sleep(K_MSEC(FRAME_TIME_TARGET));

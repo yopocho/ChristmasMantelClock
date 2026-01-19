@@ -124,7 +124,6 @@ void create_screen_scr_digital_clock() {
                     lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
                     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
-                    lv_obj_add_state(obj, LV_STATE_FOCUS_KEY);
                     add_style_style_spinboxes_digital_clock(obj);
                 }
                 {
@@ -157,7 +156,6 @@ void create_screen_scr_digital_clock() {
                     lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
                     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
-                    lv_obj_add_state(obj, LV_STATE_FOCUS_KEY);
                     add_style_style_spinboxes_digital_clock(obj);
                 }
             }
@@ -175,7 +173,6 @@ void create_screen_scr_digital_clock() {
             lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
@@ -281,6 +278,7 @@ void create_screen_scr_digital_clock() {
             lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
@@ -391,8 +389,7 @@ void create_screen_scr_digital_clock() {
                             objects.line_hr_scale_analog_clock = obj;
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, 240, 240);
-                            lv_obj_set_style_line_width(obj, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_line_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            add_style_style_line_hr_analog_clock(obj);
                         }
                         {
                             // line_min_scale_analog_clock
@@ -400,8 +397,7 @@ void create_screen_scr_digital_clock() {
                             objects.line_min_scale_analog_clock = obj;
                             lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, 240, 240);
-                            lv_obj_set_style_line_width(obj, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_line_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            add_style_style_line_min_analog_clock(obj);
                         }
                         {
                             // led_dot_analog_clock
@@ -418,9 +414,7 @@ void create_screen_scr_digital_clock() {
                             lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
                             lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
                             lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
-                            lv_obj_set_style_radius(obj, 32767, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_shadow_spread(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            add_style_style_led_analog_clock(obj);
                         }
                     }
                 }
