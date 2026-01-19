@@ -14,6 +14,7 @@
 #include <lvgl.h>
 /* UI */
 #include "ui/ui.h"
+#include "ui/styles.h"
 /* Local */
 #include "settings.h"
 /* C */
@@ -151,7 +152,7 @@ lv_color_t get_color_from_index(colours_t colour) {
 			return lv_palette_main(LV_PALETTE_RED);
 			break;
 		case Pink:
-			return lv_palette_main(LV_PALETTE_PINK);
+			return lv_color_lighten(lv_palette_main(LV_PALETTE_PINK), 100);
 			break;
 		case Purple:
 			return lv_palette_main(LV_PALETTE_PURPLE);
