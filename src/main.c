@@ -310,8 +310,7 @@ void update_background_colour(colours_t colour) {
 	if(lv_color_to_u32(target_colour) != lv_color_to_u32(current_bg_colour)) {
 		lv_obj_set_style_bg_color(objects.scr_menu, target_colour, LV_PART_MAIN | LV_STATE_DEFAULT);
 		lv_obj_set_style_bg_color(objects.scr_digital_clock, target_colour, LV_PART_MAIN | LV_STATE_DEFAULT);
-		lv_obj_invalidate(objects.scr_menu);
-		lv_obj_invalidate(objects.scr_digital_clock);
+		lv_obj_invalidate(lv_screen_active());
 	}
 }
 
@@ -356,11 +355,7 @@ void update_text_colour(colours_t colour) {
 		lv_style_set_line_color(temp_style_line_hr_analog_clock, target_colour);
 		lv_style_set_line_color(temp_style_line_min_analog_clock, target_colour);
 		lv_led_set_color(objects.led_dot_analog_clock, target_colour);
-
-		// lv_obj_invalidate(objects.led_dot_analog_clock);
-		// lv_obj_report_style_change(NULL); // Invalidate every object style
 		lv_obj_invalidate(lv_screen_active());
-		// lv_obj_invalidate(objects.scr_digital_clock);
 	}
 }
 
@@ -512,7 +507,6 @@ void set_var_time_min_global(const char *value) {
  */
 void action_flush_finished(lv_event_t *e) {
 	uint8_t code = lv_event_get_user_data(e);
-	LOG_DBG("Flush finished triggered with code %d", code);
 	if(code == 0) flush_cb_cntr++;
 
 	if(flush_cb_cntr > 10) {
@@ -575,7 +569,6 @@ void action_digital_clock_set_time_save(lv_event_t *e) {
 			next_screen = SCREEN_ANALOG_CLOCK;
 		}
 	}
-	LOG_DBG("Digital clock set time save button pressed");
 }
 
 /**
@@ -586,7 +579,6 @@ void action_digital_clock_set_time_save(lv_event_t *e) {
 void action_menu_save(lv_event_t * e) {
 	ARG_UNUSED(e);
 	if(setup_done) {
-		LOG_DBG("Menu save button pressed");
 	
 		user_settings.background_colour = lv_roller_get_selected(objects.roller_menu_background_colour);
 		user_settings.text_colour = lv_roller_get_selected(objects.roller_menu_text_colour);
@@ -862,8 +854,7 @@ int main(void)
 	while (1) {
 
 		check_screen_switching();
-		
-		LOG_DBG("Tick");
+
 		lv_task_handler(); // Handle LVGL-related tasks
 		ui_tick(); // Handle EEZ UI-related tasks
 		
