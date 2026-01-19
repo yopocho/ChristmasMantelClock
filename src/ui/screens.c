@@ -8,6 +8,8 @@
 #include "styles.h"
 #include "ui.h"
 
+#include "../settings.h"
+
 #include <string.h>
 
 groups_t groups;
@@ -75,7 +77,7 @@ void create_screen_scr_digital_clock() {
     lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(obj, get_color_from_index(user_settings.background_colour), LV_PART_MAIN | LV_STATE_DEFAULT);
     {
         lv_obj_t *parent_obj = obj;
         {
@@ -359,7 +361,6 @@ void create_screen_scr_digital_clock() {
             lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
             lv_obj_set_scroll_dir(obj, LV_DIR_NONE);
@@ -405,7 +406,7 @@ void create_screen_scr_digital_clock() {
                             objects.led_dot_analog_clock = obj;
                             lv_obj_set_pos(obj, 114, 114);
                             lv_obj_set_size(obj, 12, 12);
-                            lv_led_set_color(obj, lv_color_hex(0xffffffff));
+                            lv_led_set_color(obj, get_color_from_index(user_settings.text_colour));
                             lv_led_set_brightness(obj, 255);
                             lv_obj_add_event_cb(obj, action_change_screen, LV_EVENT_FOCUSED, (void *)2);
                             lv_obj_add_event_cb(obj, action_change_screen, LV_EVENT_KEY, (void *)2);
@@ -515,7 +516,6 @@ void create_screen_scr_menu() {
     objects.scr_menu = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 240, 240);
-    lv_obj_add_event_cb(obj, action_change_screen, LV_EVENT_KEY, (void *)6);
     lv_obj_add_event_cb(obj, event_handler_cb_scr_menu_scr_menu, LV_EVENT_ALL, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_SNAPPABLE|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER);
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -523,7 +523,7 @@ void create_screen_scr_menu() {
     lv_obj_set_scroll_snap_x(obj, LV_SCROLL_SNAP_NONE);
     lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_NONE);
     lv_obj_add_state(obj, LV_STATE_DISABLED);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(obj, get_color_from_index(user_settings.background_colour), LV_PART_MAIN | LV_STATE_DEFAULT);
     {
         lv_obj_t *parent_obj = obj;
         {

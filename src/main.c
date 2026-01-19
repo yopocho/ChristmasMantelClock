@@ -14,6 +14,8 @@
 #include <lvgl.h>
 /* UI */
 #include "ui/ui.h"
+/* Local */
+#include "settings.h"
 /* C */
 #include <string.h>
 #include <stdio.h>
@@ -29,7 +31,8 @@
 
 /* Flags */
 bool setup_done = false;
-bool user_settings_applied = false;
+bool first_flush_complete = false;
+uint8_t flush_cb_cntr = 0;
 
 /* LVGL */
 lv_indev_t * indev;
@@ -54,42 +57,13 @@ static struct rtc_time tm = {
 	.tm_sec = 24,
 };
 
-typedef enum {
-	CLOCK_TYPE_DIGITAL,
-	CLOCK_TYPE_ANALOG
-} clock_types;
-
-/* Enum for current screen indidication */
-typedef enum  {
-	SCREEN_DIGITAL_CLOCK,
-	SCREEN_ANALOG_CLOCK,
-	SCREEN_DIGITAL_CLOCK_SET_TIME,
-	SCREEN_ANALOG_CLOCK_SET_TIME,
-	SCREEN_MENU,
-	SCREEN_NONE,
-	SCREEN_PREVIOUS,
-	SCREEN_ACTIVE_CLOCK
-} screens;
-
-/* Enum for possible UI colours (cherry-picked from LVGL Main Palette) */
-typedef enum{
-	White,
-	Black,
-	Red,
-	Pink,
-	Purple,
-	Indigo,
-	Blue,
-	Cyan,
-	Teal,
-	Green,
-	Lime,
-	Yellow,
-	Amber,
-	Orange,
-	Brown,
-	Gray
-} colours_t;
+/* Default user settings*/
+user_settings_t user_settings = {
+	.brightness = 100,
+	.clock_type = CLOCK_TYPE_DIGITAL,
+	.background_colour = Black,
+	.text_colour = White
+};
 
 /* Style definitions */
 lv_color_t temp_selection_background_colour;
@@ -123,16 +97,6 @@ screens previous_screen = SCREEN_NONE;
 
 struct rtc_time current_time;
 
-/* User Settings struct typedef*/
-typedef struct __packed user_settings_t {
-	uint8_t brightness;
-	clock_types clock_type;
-	colours_t background_colour;
-	colours_t text_colour;
-	uint8_t time_hr;
-	uint8_t time_min;
-} user_settings_t;
-
 /* Flash */
 static const struct flash_area *fa;
 static size_t write_offset;
@@ -144,14 +108,6 @@ struct __packed settings_record {
 	uint16_t length;
 	uint32_t crc;
 	struct user_settings_t settings;
-};
-
-/* Default user settings*/
-user_settings_t user_settings = {
-	.brightness = 100,
-	.clock_type = CLOCK_TYPE_DIGITAL,
-	.background_colour = Black,
-	.text_colour = White
 };
 
 /* Get devices from devicetree */
@@ -176,7 +132,7 @@ void action_menu_clock_type_value_changed(lv_event_t * e);
 void action_menu_background_colour_value_changed(lv_event_t * e);
 void action_menu_text_colour_value_changed(lv_event_t * e);
 void action_menu_brightness_value_changed(lv_event_t * e);
-lv_color_t get_color_from_index(colours_t colour);
+void action_flush_finished(lv_event_t *e);
 
 /**
  * @brief Helper function for converting between local colour enum index and LVGL lv_color_t
@@ -251,11 +207,6 @@ void check_screen_switching(void) {
 		switch(next_screen) {
 			case SCREEN_DIGITAL_CLOCK:
 				LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
-				if(!user_settings_applied) {
-					update_background_colour(user_settings.background_colour);
-					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
-					user_settings_applied = true;
-				}
 				lv_indev_set_group(indev, groups.group_digital_clock);
 				lv_obj_remove_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
@@ -264,18 +215,11 @@ void check_screen_switching(void) {
 				lv_group_focus_obj(objects.label_time_hr_digital_clock);
 				display_time();
 				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
-				while(lv_screen_active() != objects.scr_digital_clock) k_sleep(K_MSEC(10));
-				update_text_colour(user_settings.text_colour);
 				previous_screen = current_screen;
 				current_screen = SCREEN_DIGITAL_CLOCK;
 				break;
 			case SCREEN_ANALOG_CLOCK:
 				LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
-				if(!user_settings_applied) {
-					update_background_colour(user_settings.background_colour);
-					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
-					user_settings_applied = true;
-				}
 				lv_indev_set_group(indev, groups.group_analog_clock);
 				lv_obj_add_flag(objects.cont_digital_clock, LV_OBJ_FLAG_HIDDEN);
 				lv_obj_add_flag(objects.cont_digital_clock_set_time, LV_OBJ_FLAG_HIDDEN);
@@ -284,7 +228,6 @@ void check_screen_switching(void) {
 				lv_group_focus_obj(objects.scale_analog_clock);
 				display_time();
 				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
-				update_text_colour(user_settings.text_colour);
 				previous_screen = current_screen;
 				current_screen = SCREEN_ANALOG_CLOCK;
 				break;
@@ -416,8 +359,8 @@ void update_text_colour(colours_t colour) {
 
 		// lv_obj_invalidate(objects.led_dot_analog_clock);
 		// lv_obj_report_style_change(NULL); // Invalidate every object style
-		lv_obj_invalidate(objects.scr_menu);
-		lv_obj_invalidate(objects.scr_digital_clock);
+		lv_obj_invalidate(lv_screen_active());
+		// lv_obj_invalidate(objects.scr_digital_clock);
 	}
 }
 
@@ -563,6 +506,23 @@ void set_var_time_min_global(const char *value) {
 }
 
 /**
+ * @brief LVGL Action CB when flush completes
+ * 
+ * @param e lv_event_t pointer with info of LVGL event which triggered callback
+ */
+void action_flush_finished(lv_event_t *e) {
+	uint8_t code = lv_event_get_user_data(e);
+	LOG_DBG("Flush finished triggered with code %d", code);
+	if(code == 0) flush_cb_cntr++;
+
+	if(flush_cb_cntr > 10) {
+		/* Turn on display backlight */
+		pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
+		lv_display_remove_event_cb_with_user_data(lv_display_get_default(), action_flush_finished, (void *)0);
+	}
+}
+
+/**
  * @brief LVGL Action CB for changing screens
  * 
  * @param e lv_event_t pointer with info of LVGL event which triggered callback
@@ -576,7 +536,7 @@ void action_change_screen(lv_event_t *e) {
 		if(temp_screen == SCREEN_PREVIOUS) {
 			/* Revert the changes made in menu to saved ones */
 			update_background_colour(user_settings.background_colour);
-			// update_text_colour(user_settings.text_colour); // FIXME
+			update_text_colour(user_settings.text_colour);
 			next_screen = previous_screen;
 			return;
 		}
@@ -834,6 +794,9 @@ static int setup_lvgl(void) {
     lv_scale_set_angle_range(objects.scale_analog_clock, 360);
     lv_scale_set_rotation(objects.scale_analog_clock, 270);
 
+	/* TODO: Temporary??? */
+	lv_display_add_event_cb(lv_display_get_default(), action_flush_finished, LV_EVENT_FLUSH_FINISH, (void *)0);
+
 	/* Disable blanking the display to prevent having to redraw */
 	ret = display_blanking_off(GC9A01);
 	k_sleep(K_MSEC(120));
@@ -861,17 +824,9 @@ int main(void)
     }
 	LOG_INF("Devicetree setup complete");
 
-	/* LVGL and EEZ UI setup */
-	ret = setup_lvgl();
-	if (ret < 0) {
-		LOG_ERR("setup_lvgl failed. Err: %d\n", ret);
-    //     return -1;
-    }
-	LOG_INF("LVGL setup complete");
-
 	/* Flash setup */
 	settings_flash_init();
-
+	
 	/* Read settings from flash */
 	if(settings_flash_load(&user_settings)) {
 		LOG_INF("Loaded settings from flash");
@@ -884,6 +839,14 @@ int main(void)
 				user_settings.time_min);
 	}
 	else LOG_WRN("Failed to retreive settings from flash");
+
+	/* LVGL and EEZ UI setup */
+	ret = setup_lvgl();
+	if (ret < 0) {
+		LOG_ERR("setup_lvgl failed. Err: %d\n", ret);
+    //     return -1;
+    }
+	LOG_INF("LVGL setup complete");
 
 	/* Apply some settings */
 	next_screen = user_settings.clock_type;
@@ -899,10 +862,11 @@ int main(void)
 	while (1) {
 
 		check_screen_switching();
-
+		
+		LOG_DBG("Tick");
 		lv_task_handler(); // Handle LVGL-related tasks
 		ui_tick(); // Handle EEZ UI-related tasks
-
+		
 		/* Update the time on widgets which are relevant for the current screen */
 		if((current_screen == SCREEN_DIGITAL_CLOCK) || (current_screen == SCREEN_ANALOG_CLOCK)) {
 			display_time();

@@ -5,6 +5,8 @@
 #include "ui.h"
 #include "screens.h"
 
+#include "../settings.h"
+
 //
 // Style: style_buttons_digital_clock_set_time
 //
@@ -37,7 +39,7 @@ lv_style_t *get_style_style_buttons_digital_clock_set_time_MAIN_DEFAULT() {
 void init_style_style_buttons_digital_clock_set_time_MAIN_FOCUS_KEY(lv_style_t *style) {
     lv_style_set_outline_opa(style, 255);
     lv_style_set_outline_width(style, 1);
-    lv_style_set_outline_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_outline_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_pad_right(style, 0);
     lv_style_set_pad_left(style, 0);
     lv_style_set_radius(style, 0);
@@ -76,7 +78,7 @@ void init_style_style_spinboxes_digital_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_pad_right(style, 0);
     lv_style_set_pad_row(style, 0);
     lv_style_set_pad_column(style, 0);
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_border_width(style, 0);
     lv_style_set_layout(style, LV_LAYOUT_FLEX);
     lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW);
@@ -100,9 +102,9 @@ lv_style_t *get_style_style_spinboxes_digital_clock_MAIN_DEFAULT() {
 };
 
 void init_style_style_spinboxes_digital_clock_MAIN_FOCUS_KEY(lv_style_t *style) {
-    lv_style_set_outline_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_outline_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_outline_opa(style, 255);
-    lv_style_set_line_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_line_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_outline_width(style, 1);
     lv_style_set_outline_pad(style, -6);
     lv_style_set_border_width(style, 0);
@@ -157,7 +159,7 @@ void remove_style_style_spinboxes_digital_clock(lv_obj_t *obj) {
 
 void init_style_style_labels_digital_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_text_font(style, &ui_font_courier_new_72);
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_labels_digital_clock_MAIN_DEFAULT() {
@@ -185,7 +187,7 @@ void remove_style_style_labels_digital_clock(lv_obj_t *obj) {
 //
 
 void init_style_style_labels_menu_MAIN_DEFAULT(lv_style_t *style) {
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_text_font(style, &ui_font_courier_new_16);
 };
 
@@ -214,7 +216,7 @@ void remove_style_style_labels_menu(lv_obj_t *obj) {
 //
 
 void init_style_style_spinboxes_menu_MAIN_DEFAULT(lv_style_t *style) {
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_text_font(style, &ui_font_courier_new_16);
     lv_style_set_bg_opa(style, 0);
     lv_style_set_radius(style, 0);
@@ -245,7 +247,7 @@ lv_style_t *get_style_style_spinboxes_menu_MAIN_DEFAULT() {
 void init_style_style_spinboxes_menu_MAIN_FOCUS_KEY(lv_style_t *style) {
     lv_style_set_outline_width(style, 1);
     lv_style_set_outline_opa(style, 255);
-    lv_style_set_outline_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_outline_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_layout(style, LV_LAYOUT_FLEX);
     lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW);
     lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_CENTER);
@@ -299,7 +301,7 @@ void remove_style_style_spinboxes_menu(lv_obj_t *obj) {
 void init_style_style_buttons_menu_MAIN_FOCUS_KEY(lv_style_t *style) {
     lv_style_set_outline_opa(style, 255);
     lv_style_set_outline_width(style, 1);
-    lv_style_set_outline_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_outline_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_buttons_menu_MAIN_FOCUS_KEY() {
@@ -314,7 +316,7 @@ lv_style_t *get_style_style_buttons_menu_MAIN_FOCUS_KEY() {
 
 void init_style_style_buttons_menu_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_bg_opa(style, 0);
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_text_font(style, &ui_font_courier_new_20);
     lv_style_set_pad_top(style, 0);
     lv_style_set_pad_bottom(style, 0);
@@ -356,11 +358,12 @@ void remove_style_style_buttons_menu(lv_obj_t *obj) {
 void init_style_style_scale_analog_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_align(style, LV_ALIGN_CENTER);
     lv_style_set_text_font(style, &ui_font_courier_new_40);
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
-    lv_style_set_arc_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
+    lv_style_set_arc_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_arc_width(style, 0);
     lv_style_set_radius(style, 0);
     lv_style_set_clip_corner(style, true);
+    lv_style_set_line_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_scale_analog_clock_MAIN_DEFAULT() {
@@ -374,7 +377,7 @@ lv_style_t *get_style_style_scale_analog_clock_MAIN_DEFAULT() {
 };
 
 void init_style_style_scale_analog_clock_INDICATOR_DEFAULT(lv_style_t *style) {
-    lv_style_set_line_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_line_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_length(style, 15);
     lv_style_set_line_width(style, 3);
     lv_style_set_radius(style, 0);
@@ -396,7 +399,7 @@ void init_style_style_scale_analog_clock_ITEMS_DEFAULT(lv_style_t *style) {
     lv_style_set_line_width(style, 1);
     lv_style_set_radius(style, 0);
     lv_style_set_clip_corner(style, true);
-    lv_style_set_line_color(style, lv_color_hex(0xfffafafa));
+    lv_style_set_line_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_scale_analog_clock_ITEMS_DEFAULT() {
@@ -439,7 +442,7 @@ void init_style_style_rollers_menu_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_clip_corner(style, true);
     lv_style_set_border_opa(style, 0);
     lv_style_set_text_font(style, &ui_font_courier_new_16);
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_rollers_menu_MAIN_DEFAULT() {
@@ -455,7 +458,7 @@ lv_style_t *get_style_style_rollers_menu_MAIN_DEFAULT() {
 void init_style_style_rollers_menu_MAIN_FOCUS_KEY(lv_style_t *style) {
     lv_style_set_outline_opa(style, 255);
     lv_style_set_outline_width(style, 1);
-    lv_style_set_outline_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_outline_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_rollers_menu_MAIN_FOCUS_KEY() {
@@ -501,7 +504,7 @@ void remove_style_style_rollers_menu(lv_obj_t *obj) {
 //
 
 void init_style_style_labels_analog_clock_MAIN_DEFAULT(lv_style_t *style) {
-    lv_style_set_text_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
     lv_style_set_text_font(style, &ui_font_courier_new_40);
 };
 
@@ -560,7 +563,7 @@ void remove_style_style_led_analog_clock(lv_obj_t *obj) {
 
 void init_style_style_line_hr_analog_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_line_width(style, 6);
-    lv_style_set_line_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_line_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_line_hr_analog_clock_MAIN_DEFAULT() {
@@ -589,7 +592,7 @@ void remove_style_style_line_hr_analog_clock(lv_obj_t *obj) {
 
 void init_style_style_line_min_analog_clock_MAIN_DEFAULT(lv_style_t *style) {
     lv_style_set_line_width(style, 4);
-    lv_style_set_line_color(style, lv_color_hex(0xffffffff));
+    lv_style_set_line_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_line_min_analog_clock_MAIN_DEFAULT() {
