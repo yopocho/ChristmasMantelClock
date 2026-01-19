@@ -110,6 +110,7 @@ lv_style_t * temp_style_line_hr_analog_clock;
 lv_style_t * temp_style_line_min_analog_clock;
 lv_style_t * temp_style_labels_menu;
 lv_style_t * temp_style_labels_digital_clock;
+lv_style_t * temp_style_labels_analog_clock;
 lv_style_t * temp_style_buttons_menu;
 lv_style_t * temp_style_buttons_menu_FOCUSKEY;
 lv_style_t * temp_style_buttons_digital_clock_set_time;
@@ -251,7 +252,6 @@ void check_screen_switching(void) {
 			case SCREEN_DIGITAL_CLOCK:
 				LOG_DBG("Switching to SCREEN_DIGITAL_CLOCK");
 				if(!user_settings_applied) {
-					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
 					update_background_colour(user_settings.background_colour);
 					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 					user_settings_applied = true;
@@ -264,13 +264,14 @@ void check_screen_switching(void) {
 				lv_group_focus_obj(objects.label_time_hr_digital_clock);
 				display_time();
 				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+				while(lv_screen_active() != objects.scr_digital_clock) k_sleep(K_MSEC(10));
+				update_text_colour(user_settings.text_colour);
 				previous_screen = current_screen;
 				current_screen = SCREEN_DIGITAL_CLOCK;
 				break;
 			case SCREEN_ANALOG_CLOCK:
 				LOG_DBG("Switching to SCREEN_ANALOG_CLOCK");
 				if(!user_settings_applied) {
-					// update_text_colour(user_settings.text_colour); // FIXME: Even though the correct colour is read it does not get applied, probably something with assigning the styles of only certain parts and temp_styles or smthn idk bro
 					update_background_colour(user_settings.background_colour);
 					pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, PWM_PERIOD * ((float) user_settings.brightness / (float) 100));
 					user_settings_applied = true;
@@ -283,6 +284,7 @@ void check_screen_switching(void) {
 				lv_group_focus_obj(objects.scale_analog_clock);
 				display_time();
 				if(lv_screen_active() != objects.scr_digital_clock) loadScreen(SCREEN_ID_SCR_DIGITAL_CLOCK);
+				update_text_colour(user_settings.text_colour);
 				previous_screen = current_screen;
 				current_screen = SCREEN_ANALOG_CLOCK;
 				break;
@@ -323,6 +325,7 @@ void check_screen_switching(void) {
 				temp_style_rollers_menu_SELECTED = get_style_style_rollers_menu_SELECTED_DEFAULT();
 				temp_style_labels_menu = get_style_style_labels_menu_MAIN_DEFAULT();
 				temp_style_labels_digital_clock = get_style_style_labels_digital_clock_MAIN_DEFAULT();
+				temp_style_labels_analog_clock = get_style_style_labels_analog_clock_MAIN_DEFAULT();
 				temp_style_buttons_menu = get_style_style_buttons_menu_MAIN_DEFAULT();
 				temp_style_buttons_menu_FOCUSKEY = get_style_style_buttons_menu_MAIN_FOCUS_KEY();
 				temp_style_buttons_digital_clock_set_time = get_style_style_buttons_digital_clock_set_time_MAIN_DEFAULT();
@@ -381,37 +384,40 @@ void update_text_colour(colours_t colour) {
 		lv_style_set_text_color(temp_style_spinboxes_menu, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_menu_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_menu_CURSOR, target_colour);
-		lv_style_set_border_color(temp_style_spinboxes_menu, target_colour);
-		lv_style_set_border_color(temp_style_spinboxes_menu_FOCUSKEY, target_colour);
+		lv_style_set_outline_color(temp_style_spinboxes_menu, target_colour);
+		lv_style_set_outline_color(temp_style_spinboxes_menu_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_digital_clock, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_digital_clock_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_digital_clock_CURSOR, target_colour);
-		lv_style_set_border_color(temp_style_spinboxes_digital_clock, target_colour);
-		lv_style_set_border_color(temp_style_spinboxes_digital_clock_FOCUSKEY, target_colour);
+		lv_style_set_outline_color(temp_style_spinboxes_digital_clock, target_colour);
+		lv_style_set_outline_color(temp_style_spinboxes_digital_clock_FOCUSKEY, target_colour);
 		lv_style_set_line_color(temp_style_scale_analog_clock, target_colour);
 		lv_style_set_line_color(temp_style_scale_analog_clock_INDICATOR, target_colour);
 		lv_style_set_line_color(temp_style_scale_analog_clock_ITEMS, target_colour);
 		lv_style_set_text_color(temp_style_rollers_menu, target_colour);
 		lv_style_set_text_color(temp_style_rollers_menu_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_rollers_menu_SELECTED, target_colour);
-		lv_style_set_border_color(temp_style_rollers_menu, target_colour);
-		lv_style_set_border_color(temp_style_rollers_menu_FOCUSKEY, target_colour);
+		lv_style_set_outline_color(temp_style_rollers_menu, target_colour);
+		lv_style_set_outline_color(temp_style_rollers_menu_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_labels_menu, target_colour);
 		lv_style_set_text_color(temp_style_labels_digital_clock, target_colour);
+		lv_style_set_text_color(temp_style_labels_analog_clock, target_colour);
 		lv_style_set_text_color(temp_style_buttons_menu, target_colour);
 		lv_style_set_text_color(temp_style_buttons_menu_FOCUSKEY, target_colour);
-		lv_style_set_border_color(temp_style_buttons_menu, target_colour);
-		lv_style_set_border_color(temp_style_buttons_menu_FOCUSKEY, target_colour);
+		lv_style_set_outline_color(temp_style_buttons_menu, target_colour);
+		lv_style_set_outline_color(temp_style_buttons_menu_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_buttons_digital_clock_set_time, target_colour);
 		lv_style_set_text_color(temp_style_buttons_digital_clock_set_time_FOCUSKEY, target_colour);
-		lv_style_set_border_color(temp_style_buttons_digital_clock_set_time, target_colour);
-		lv_style_set_border_color(temp_style_buttons_digital_clock_set_time_FOCUSKEY, target_colour);
+		lv_style_set_outline_color(temp_style_buttons_digital_clock_set_time, target_colour);
+		lv_style_set_outline_color(temp_style_buttons_digital_clock_set_time_FOCUSKEY, target_colour);
 		lv_style_set_line_color(temp_style_line_hr_analog_clock, target_colour);
 		lv_style_set_line_color(temp_style_line_min_analog_clock, target_colour);
 		lv_led_set_color(objects.led_dot_analog_clock, target_colour);
+
 		// lv_obj_invalidate(objects.led_dot_analog_clock);
 		// lv_obj_report_style_change(NULL); // Invalidate every object style
-		lv_obj_invalidate(lv_screen_active());
+		lv_obj_invalidate(objects.scr_menu);
+		lv_obj_invalidate(objects.scr_digital_clock);
 	}
 }
 
@@ -880,9 +886,6 @@ int main(void)
 	else LOG_WRN("Failed to retreive settings from flash");
 
 	/* Apply some settings */
-	next_screen = user_settings.clock_type;
-
-	/* Set initial screen */
 	next_screen = user_settings.clock_type;
 
 	/* Initial time */
