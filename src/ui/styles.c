@@ -24,6 +24,7 @@ void init_style_style_buttons_digital_clock_set_time_MAIN_DEFAULT(lv_style_t *st
     lv_style_set_translate_y(style, -60);
     lv_style_set_margin_left(style, 3);
     lv_style_set_margin_right(style, 3);
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_buttons_digital_clock_set_time_MAIN_DEFAULT() {
@@ -43,6 +44,7 @@ void init_style_style_buttons_digital_clock_set_time_MAIN_FOCUS_KEY(lv_style_t *
     lv_style_set_pad_right(style, 0);
     lv_style_set_pad_left(style, 0);
     lv_style_set_radius(style, 0);
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_buttons_digital_clock_set_time_MAIN_FOCUS_KEY() {
@@ -269,6 +271,7 @@ lv_style_t *get_style_style_spinboxes_menu_MAIN_FOCUS_KEY() {
 
 void init_style_style_spinboxes_menu_CURSOR_DEFAULT(lv_style_t *style) {
     lv_style_set_bg_opa(style, 0);
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
 };
 
 lv_style_t *get_style_style_spinboxes_menu_CURSOR_DEFAULT() {
@@ -281,11 +284,26 @@ lv_style_t *get_style_style_spinboxes_menu_CURSOR_DEFAULT() {
     return style;
 };
 
+void init_style_style_spinboxes_menu_SELECTED_DEFAULT(lv_style_t *style) {
+    lv_style_set_text_color(style, get_color_from_index(user_settings.text_colour));
+};
+
+lv_style_t *get_style_style_spinboxes_menu_SELECTED_DEFAULT() {
+    static lv_style_t *style;
+    if (!style) {
+        style = lv_malloc(sizeof(lv_style_t));
+        lv_style_init(style);
+        init_style_style_spinboxes_menu_SELECTED_DEFAULT(style);
+    }
+    return style;
+};
+
 void add_style_style_spinboxes_menu(lv_obj_t *obj) {
     (void)obj;
     lv_obj_add_style(obj, get_style_style_spinboxes_menu_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_style(obj, get_style_style_spinboxes_menu_MAIN_FOCUS_KEY(), LV_PART_MAIN | LV_STATE_FOCUS_KEY);
     lv_obj_add_style(obj, get_style_style_spinboxes_menu_CURSOR_DEFAULT(), LV_PART_CURSOR | LV_STATE_DEFAULT);
+    lv_obj_add_style(obj, get_style_style_spinboxes_menu_SELECTED_DEFAULT(), LV_PART_SELECTED | LV_STATE_DEFAULT);
 };
 
 void remove_style_style_spinboxes_menu(lv_obj_t *obj) {
@@ -293,6 +311,7 @@ void remove_style_style_spinboxes_menu(lv_obj_t *obj) {
     lv_obj_remove_style(obj, get_style_style_spinboxes_menu_MAIN_DEFAULT(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_remove_style(obj, get_style_style_spinboxes_menu_MAIN_FOCUS_KEY(), LV_PART_MAIN | LV_STATE_FOCUS_KEY);
     lv_obj_remove_style(obj, get_style_style_spinboxes_menu_CURSOR_DEFAULT(), LV_PART_CURSOR | LV_STATE_DEFAULT);
+    lv_obj_remove_style(obj, get_style_style_spinboxes_menu_SELECTED_DEFAULT(), LV_PART_SELECTED | LV_STATE_DEFAULT);
 };
 
 //
