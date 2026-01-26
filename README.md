@@ -19,6 +19,7 @@ This repository is intended as a reference for the design, including electronics
 ## Features
 
 - Custom PCB and hardware design
+- GC9A01 240x240 1.28" round LCD
 - Zephyr RTOS board definition based on the PCB
 - STM32F405-based firmware
 - Zephyr RTOS configuration
@@ -58,7 +59,7 @@ build_pristine.bat
   Implementation-specific configuration
 
 ## Flashing and Debugging
-### Flashing
+
 1. Connect a supported debugger (ST-Link, J-Link, etc.). 
 3. Flash the generated image to the target device (DFU or SWD).
 4. Use a SWO-capable debugger for live SWO-trace logging and debugging
@@ -73,4 +74,5 @@ Hardware designed using Altium Designer
 ## License
 
 Apache License 2.0
+
 
