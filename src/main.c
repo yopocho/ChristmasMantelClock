@@ -24,7 +24,7 @@
  
 /* Defines */
 #define LOG_LEVEL LOG_LEVEL_DBG
-#define FRAME_TIME_TARGET 50 // ms. 20 FPS for a clock is plenty
+#define FRAME_TIME_TARGET 10 // ms. ~100 FPS for a clock is plenty lol
 #define PWM_PERIOD PWM_USEC(10) // us
 #define SETTINGS_MAGIC 0xFEEDBEEF // Search data for flash journal
 
