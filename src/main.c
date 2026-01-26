@@ -379,7 +379,7 @@ bool settings_flash_load(user_settings_t *out) {
 		}
 
 		if(rec.length == sizeof(user_settings_t)) {
-			uint32_t crc = crc32_ieee(&rec.settings, sizeof(user_settings_t));
+			uint32_t crc = crc32_ieee((uint8_t *) &rec.settings, sizeof(user_settings_t));
 			if(crc == rec.crc) {
 				*out = rec.settings;
 				found = true;
@@ -408,7 +408,7 @@ static size_t flash_find_tail(void) {
 			break;
 		}
 
-		uint32_t crc = crc32_ieee(&rec.settings, sizeof(user_settings_t));
+		uint32_t crc = crc32_ieee((uint8_t *) &rec.settings, sizeof(user_settings_t));
 
 		if(crc != rec.crc) {
 			break;
@@ -442,7 +442,7 @@ int settings_flash_save(const user_settings_t *in) {
 		.magic = SETTINGS_MAGIC,
 		.version = 1,
 		.length = sizeof(user_settings_t),
-		.crc = crc32_ieee(in, sizeof(user_settings_t)),
+		.crc = crc32_ieee((uint8_t *) in, sizeof(user_settings_t)),
 		.settings = *in
 	};
 
@@ -505,7 +505,7 @@ void set_var_time_min_global(const char *value) {
  * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_flush_finished(lv_event_t *e) {
-	uint8_t code = lv_event_get_user_data(e);
+	uint8_t code = (uint32_t) lv_event_get_user_data(e);
 	if(code == 0) flush_cb_cntr++;
 
 	if(flush_cb_cntr > 10) {
@@ -651,7 +651,7 @@ void action_menu_brightness_value_changed(lv_event_t *e) {
 	ARG_UNUSED(e);
 	if(setup_done) {
 		float temp_brightness = lv_spinbox_get_value(objects.spinbox_menu_brightness);
-		LOG_DBG("Menu clock type value changed with value: %d", temp_brightness);
+		LOG_DBG("Menu clock type value changed with value: %d", (int) temp_brightness);
 		uint32_t pulse_width_us = PWM_PERIOD * (temp_brightness / 100);
 		LOG_DBG("New pulse width: %d", pulse_width_us);
 		pwm_set_dt(&LCD_kathode_pwm, PWM_PERIOD, (int) PWM_PERIOD * (temp_brightness / 100));
