@@ -1,1 +1,0 @@
-west build -t initlevels
