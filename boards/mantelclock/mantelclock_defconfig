@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
-# # Enable MPU
+# Enable MPU
 CONFIG_ARM_MPU=y
 
-# # Enable HW stack protection
+# Enable HW stack protection
 CONFIG_HW_STACK_PROTECTION=y
 
 # enable GPIO
@@ -25,23 +25,6 @@ CONFIG_REGULATOR_FIXED_INIT_PRIORITY=50
 # Timers
 CONFIG_CLOCK_CONTROL=y
 
-# NVS
-CONFIG_FLASH=y
-CONFIG_FLASH_MAP=y
-CONFIG_MPU_ALLOW_FLASH_WRITE=y
-CONFIG_CRC=y
-
-# Enable backup domain access
-# CONFIG_PM=y
-# CONFIG_PM_RUNTIME=y
-
-# Logging/Debugging
-CONFIG_DEBUG=y
-CONFIG_LOG=y
-CONFIG_LOG_BACKEND_SWO=y
-CONFIG_LOG_BACKEND_SWO_FREQ_HZ=2000000
-CONFIG_THREAD_NAME=y
-
 # LVGL Includes
 CONFIG_LVGL=y 
 CONFIG_GC9X01X=y
@@ -49,34 +32,10 @@ CONFIG_DISPLAY=y
 CONFIG_INPUT=y
 CONFIG_LV_Z_KEYPAD_INPUT=y
 
-# LVGL Requirements (memory in 32-bit words)
+# LVGL Requirements
 CONFIG_MAIN_STACK_SIZE=32768
 CONFIG_HEAP_MEM_POOL_SIZE=30000
 CONFIG_LV_Z_MEM_POOL_SIZE=30000
 CONFIG_LV_Z_VDB_SIZE=10
 CONFIG_LV_COLOR_DEPTH_16=y
 CONFIG_LV_COLOR_16_SWAP=y
-
-# LVGL Widgets
-# CONFIG_LV_CONF_MINIMAL=y
-# CONFIG_LV_USE_LABEL=y
-# CONFIG_LV_USE_SPINBOX=y
-# CONFIG_LV_USE_ROLLER=y
-# CONFIG_LV_FONT_MONTSERRAT_18=y
-# CONFIG_LV_FONT_MONTSERRAT_48=y
-# CONFIG_LV_USE_LABEL=y
-# CONFIG_LV_LABEL_TEXT_SELECTION=y 
-# CONFIG_LV_USE_LINE=y
-# CONFIG_LV_USE_ARC=y
-# CONFIG_LV_USE_MONKEY=y
-
-# LVGL Fonts
-# CONFIG_LV_FONT_DEFAULT_MONTSERRAT_48=y
-
-# Performance Tuning in LVGL
-# To optimize LVGL's performance, several kconfig options can be configured:
-#     CONFIG_LV_Z_VDB_SIZE: Sets the rendering buffer size as a percentage of the display area, adjustable from 1% to 100%. Larger buffers can enhance performance, especially when used with CONFIG_LV_Z_FULL_REFRESH.
-#     CONFIG_LV_Z_DOUBLE_VDB: Enables the use of two rendering buffers, allowing for parallel rendering and data flushing, thus improving responsiveness and reducing latency.
-#     CONFIG_LV_Z_VDB_ALIGN: Ensures that the rendering buffer is properly aligned, which is critical for efficient memory access based on the color depth.
-#     CONFIG_LV_Z_VBD_CUSTOM_SECTION: Allows rendering buffers to be placed in a custom memory section (e.g., .lvgl_buf), useful for leveraging specific memory types like tightly coupled or external memory to enhance performance.
-
