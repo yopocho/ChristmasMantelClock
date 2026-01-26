@@ -34,8 +34,10 @@ static int get_date_time(const struct device *rtc, struct rtc_time *target_time)
 static void display_time(void);
 static int setup_dt(void);
 static int setup_lvgl(void);
-void update_background_colour(colours_t colour);
-void update_text_colour(colours_t colour);
+static void update_background_colour(colours_t colour);
+static void update_text_colour(colours_t colour);
+
+/* Prototypes for EEZ Studio callbacks on LVGL events */
 void action_change_screen(lv_event_t * e);
 void action_digital_clock_set_time_save(lv_event_t * e);
 void action_menu_save(lv_event_t * e);
