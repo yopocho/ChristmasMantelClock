@@ -31,7 +31,7 @@ Designed as a standalone mantel clock, nice for on the mantel!
 ### Prerequisites
 
 - ARM GCC toolchain
-- CMake 3.13 or newer
+- CMake 3.20 or newer
 - Zephyr SDK and dependencies
 - West Metatool
 - Windows build environment (CMD or PowerShell)
@@ -74,4 +74,3 @@ Hardware designed using Altium Designer
 
 Apache License 2.0
 
-All rights reserved unless stated otherwise.
