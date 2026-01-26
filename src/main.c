@@ -600,9 +600,12 @@ void action_menu_text_colour_value_changed(lv_event_t *e) {
 	ARG_UNUSED(e);
 	if(setup_done) {
 		uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_text_colour);
-	
 		LOG_DBG("Menu text colour value changed with value: %d", roller_index);
-	
+		if(roller_index == lv_roller_get_selected(objects.roller_menu_background_colour)) {
+			if(roller_index == 0) roller_index = lv_roller_get_option_cnt(objects.roller_menu_text_colour) - 1;
+			else roller_index--;
+			lv_roller_set_selected(objects.roller_menu_text_colour, roller_index, LV_ANIM_OFF);
+		}
 		update_text_colour((colours_t)roller_index);
 	}
 
@@ -618,7 +621,11 @@ void action_menu_background_colour_value_changed(lv_event_t *e) {
 	if(setup_done) {
 		uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_background_colour);
 		LOG_DBG("Menu background colour value changed with value: %d", roller_index);
-		
+		if(roller_index == lv_roller_get_selected(objects.roller_menu_text_colour)) {
+			if(roller_index == 0) roller_index = lv_roller_get_option_cnt(objects.roller_menu_background_colour) - 1;
+			else roller_index--;
+			lv_roller_set_selected(objects.roller_menu_background_colour, roller_index, LV_ANIM_OFF);
+		}
 		update_background_colour((colours_t)roller_index);
 	}
 }
@@ -641,7 +648,7 @@ void action_menu_clock_type_value_changed(lv_event_t *e) {
  * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_brightness_value_changed(lv_event_t *e) {
-	
+	ARG_UNUSED(e);
 	if(setup_done) {
 		float temp_brightness = lv_spinbox_get_value(objects.spinbox_menu_brightness);
 		LOG_DBG("Menu clock type value changed with value: %d", temp_brightness);
