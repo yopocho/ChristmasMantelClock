@@ -14,6 +14,8 @@
 
 Hardware and firmware for a my 2025 christmas present to friends and family. This repository describes the device I designed, which is built around an STM32 microcontroller running Zephyr RTOS with LVGL/EEZ Studio UI.
 
+![Image of the finished mantel clock](Hardware/Mantelclock.jpeg)
+
 This repository is intended as a reference for the design, including electronics, firmware, and build configuration.
 
 ## Features
@@ -74,5 +76,6 @@ Hardware designed using Altium Designer
 ## License
 
 Apache License 2.0
+
 
 
