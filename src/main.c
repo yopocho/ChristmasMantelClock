@@ -601,7 +601,8 @@ void action_menu_save(lv_event_t * e) {
  * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_text_colour_value_changed(lv_event_t *e) {
-	ARG_UNUSED(e);
+	lv_event_code_t event_code = lv_event_get_code(e);
+	if(event_code != LV_EVENT_KEY) return;
 	if(setup_done) {
 		uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_text_colour);
 		LOG_DBG("Menu text colour value changed with value: %d", roller_index);
@@ -610,7 +611,6 @@ void action_menu_text_colour_value_changed(lv_event_t *e) {
 			else roller_index--;
 			lv_roller_set_selected(objects.roller_menu_text_colour, roller_index, LV_ANIM_OFF);
 		}
-		LOG_DBG("Updating text colour");
 		update_text_colour((colours_t)roller_index);
 	}
 
@@ -622,7 +622,8 @@ void action_menu_text_colour_value_changed(lv_event_t *e) {
  * @param e lv_event_t pointer with info of LVGL event which triggered callback
  */
 void action_menu_background_colour_value_changed(lv_event_t *e) {
-	ARG_UNUSED(e);
+	lv_event_code_t event_code = lv_event_get_code(e);
+	if(event_code != LV_EVENT_KEY) return;
 	if(setup_done) {
 		uint8_t roller_index = lv_roller_get_selected(objects.roller_menu_background_colour);
 		LOG_DBG("Menu background colour value changed with value: %d", roller_index);
@@ -631,7 +632,6 @@ void action_menu_background_colour_value_changed(lv_event_t *e) {
 			else roller_index--;
 			lv_roller_set_selected(objects.roller_menu_background_colour, roller_index, LV_ANIM_OFF);
 		}
-		LOG_DBG("Updating background colour");
 		update_background_colour((colours_t)roller_index);
 	}
 }
