@@ -309,6 +309,7 @@ void update_background_colour(colours_t colour) {
 	lv_color_t current_bg_colour = lv_obj_get_style_bg_color(objects.scr_digital_clock, LV_PART_MAIN);
 	lv_color_t target_colour = get_color_from_index(colour);
 	if(lv_color_to_u32(target_colour) != lv_color_to_u32(current_bg_colour)) {
+		LOG_DBG("Setting new background colour");
 		lv_obj_set_style_bg_color(objects.scr_menu, target_colour, LV_PART_MAIN | LV_STATE_DEFAULT);
 		lv_obj_set_style_bg_color(objects.scr_digital_clock, target_colour, LV_PART_MAIN | LV_STATE_DEFAULT);
 		lv_obj_invalidate(lv_screen_active());
@@ -324,6 +325,7 @@ void update_text_colour(colours_t colour) {
 	lv_color_t current_text_colour = lv_obj_get_style_text_color(objects.label_time_hr_digital_clock, LV_PART_MAIN);
 	lv_color_t target_colour = get_color_from_index(colour);
 	if(lv_color_to_u32(target_colour) != lv_color_to_u32(current_text_colour)) {
+		LOG_DBG("Setting new text colour");
 		lv_style_set_text_color(temp_style_spinboxes_menu, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_menu_FOCUSKEY, target_colour);
 		lv_style_set_text_color(temp_style_spinboxes_menu_CURSOR, target_colour);
@@ -608,6 +610,7 @@ void action_menu_text_colour_value_changed(lv_event_t *e) {
 			else roller_index--;
 			lv_roller_set_selected(objects.roller_menu_text_colour, roller_index, LV_ANIM_OFF);
 		}
+		LOG_DBG("Updating text colour");
 		update_text_colour((colours_t)roller_index);
 	}
 
@@ -628,6 +631,7 @@ void action_menu_background_colour_value_changed(lv_event_t *e) {
 			else roller_index--;
 			lv_roller_set_selected(objects.roller_menu_background_colour, roller_index, LV_ANIM_OFF);
 		}
+		LOG_DBG("Updating background colour");
 		update_background_colour((colours_t)roller_index);
 	}
 }
